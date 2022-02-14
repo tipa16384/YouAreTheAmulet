@@ -36,7 +36,7 @@ def game_loop():
                 elif event.key == pygame.K_RIGHT:
                     rotation += 1
 
-        screen.fill((0, 255, 255))
+        screen.fill((0, 0, 0))
 
         room.draw(screen, rotation)
 
