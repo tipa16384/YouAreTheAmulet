@@ -28,8 +28,7 @@ class Amulet:
         self.movement_event = pygame.USEREVENT + 2
         pygame.time.set_timer(self.movement_event, 1000//120)
 
-        self.instructions = self.myfont.render(
-            "Use the arrow keys to move around. Press P to swap players. Press ESC to quit.", False, (255, 255, 0))
+        self.new_message("Use the arrow keys to move around. Press P to swap players. Press ESC to quit.")
 
     def object_at(self, x, y):
         for actor in self.room.actors:
@@ -64,6 +63,10 @@ class Amulet:
         self.player.setIsPlayer(False)
         new_player.setIsPlayer(True)
         self.player = new_player
+        self.new_message("Swapped players")
+
+    def new_message(self, message):
+        self.instructions = self.myfont.render(message, True, (255, 255, 0))
 
     def game_loop(self):
         running = True
@@ -74,20 +77,26 @@ class Amulet:
                     running = False
                     break
                 elif event.type == pygame.KEYDOWN:
-                    # Was it the Escape key? If so, stop the loop.
-                    if event.key == pygame.K_ESCAPE:
-                        running = False
-                        break
-                    elif event.key == pygame.K_LEFT:
-                        self.rotate_player(-1)
-                    elif event.key == pygame.K_RIGHT:
-                        self.rotate_player(1)
-                    elif event.key == pygame.K_UP:
-                        self.move_player(True)
-                    elif event.key == pygame.K_DOWN:
-                        self.move_player(False)
-                    elif event.key == pygame.K_p:
-                        self.swap_player()
+                    try:
+                        # Was it the Escape key? If so, stop the loop.
+                        if event.key == pygame.K_ESCAPE:
+                            running = False
+                            break
+                        elif event.key == pygame.K_LEFT:
+                            self.rotate_player(-1)
+                        elif event.key == pygame.K_RIGHT:
+                            self.rotate_player(1)
+                        elif event.key == pygame.K_UP:
+                            self.move_player(True)
+                        elif event.key == pygame.K_DOWN:
+                            self.move_player(False)
+                        elif event.key == pygame.K_p:
+                            self.swap_player()
+                        elif event.key == pygame.K_PRINTSCREEN:
+                            pygame.image.save(self.screen, "screenshot.png")
+                            self.new_message("Screenshot saved to screenshot.png")
+                    except AttributeError:
+                        pass
                 elif event.type == self.animation_event:
                     for actor in self.room.actors:
                         actor.animate()
