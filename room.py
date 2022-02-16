@@ -6,12 +6,12 @@ room_sprites = None
 wall_sprites = None
 room_sprite_width = 64
 room_sprite_height = 32
-wall_height = 4
+wall_height = 2
 
 def init_rooms():
     global room_sprites, wall_sprites
-    room_sprites = SpriteSheet('.\\small-floor-tiles\\Interior\\small-interior.png')
-    wall_sprites = SpriteSheet('.\\small-floor-tiles\\Interior\\tempwalls.png')
+    room_sprites = SpriteSheet('small-interior.png')
+    wall_sprites = SpriteSheet('tempwalls.png')
 
 def screen_coords(x, y):
     sx = (x+y)*room_sprite_width//2
@@ -28,9 +28,13 @@ class Room:
         self.first_floor_type = room_sprites.image_at((room_sprite_width, y, room_sprite_width, room_sprite_height), colorkey=-1)
         self.left_wall = wall_sprites.image_at((0, 0, 32, 48), colorkey=-1)
         self.right_wall = pygame.transform.flip(self.left_wall, True, False)
+        self.bottom_wall = wall_sprites.image_at((0, 0, 32, 48), colorkey=-1)
+        self.bottom_wall.set_alpha(64)
+        self.left_bottom_wall = pygame.transform.flip(self.bottom_wall, True, False)
         self.actors = [Babus((1,3)), Archer((2,3))]
 
         self.actors[0].setFacing(1)
+        self.actors[0].setIsPlayer(True)
         self.actors[1].setFacing(-1)
     
     def rotate(self, x, y, rotation):
@@ -76,3 +80,13 @@ class Room:
             rects = actor.get_rect()
             surface.blit(
                 sprite, (sx + dx + (ssize-rects[2])//2, sy + dy - rects[3]+ssize//3))
+
+        for x in range(self.height if nrot & 1 else self.width):
+            bx, by = screen_coords(x, self.width if nrot & 1 else self.height)
+            for wy in range(wall_height):
+                surface.blit(self.bottom_wall, (bx+dx, by+dy-32-32*wy))
+
+        for y in range(self.width if nrot & 1 else self.height):
+            bx, by = screen_coords(-1, y)
+            for wy in range(wall_height):
+                surface.blit(self.left_bottom_wall, (bx+dx+32, by+dy-32-32*wy))

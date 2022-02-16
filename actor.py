@@ -1,6 +1,7 @@
 from spritesheet import SpriteSheet
 import pygame
 
+__facing_deltas__ = [(0,-1), (1,0), (0,1), (-1,0)]
 
 class Actor:
     def __init__(self, sprites, rects, pos, facing=3):
@@ -17,12 +18,48 @@ class Actor:
         self.move_queue = list()
         self.frame = 0
         self.rotation = 0
+        self.is_player = False
+
+    def getMoving(self):
+        return self.moving
+
+    def get_facing_delta(self):
+        return __facing_deltas__[self.facing % len(__facing_deltas__)]
+
+    def getPos(self):
+        return self.pos
+    
+    def setPos(self, pos):
+        self.x, self.y = pos
+        self.pos = pos
+
+    def setIsPlayer(self, is_player):
+        self.is_player = is_player
+    
+    def getIsPlayer(self):
+        return self.is_player
 
     def setRotation(self, rotation):
         self.rotation = rotation
 
     def setFacing(self, facing):
         self.facing = facing
+    
+    def face_player(self, px, py):
+        dx = px - self.x
+        dy = py - self.y
+
+        if (dx == 0 and dy < 0) or (dy < 0 and abs(dx) <= abs(dy)):
+            self.facing = 0
+        elif (dx == 0 and dy > 0) or (dy > 0 and abs(dx) <= abs(dy)):
+            self.facing = 2
+        elif (dx > 0 and dy == 0) or (dx > 0 and abs(dx) > abs(dy)):
+            self.facing = 1
+        else:
+            self.facing = 3
+
+    def getFacing(self):
+        return self.facing
 
     def animate(self):
         self.frame += 1
@@ -52,37 +89,19 @@ class Actor:
     def move(self):
         if self.move_queue:
             self.dx, self.dy = self.move_queue.pop(0)
-            if self.dx:
-                self.facing = 0 if self.dx < 0 else 1
-            elif self.dy:
-                self.facing = 2 if self.dy > 0 else 3
         else:
             self.moving = False
             self.dx, self.dy = 0, 0
-            if self.y != 1:
-                self.facing = 4
-                self.frame = 0
+            self.frame = 0
 
-    def move_to(self, x, y, x1, y1, score):
-        if y == 1:
-            dx = (1 if x1 > x else -1)/self.speed
-            while x != x1:
-                self.move_queue.append((dx, 0))
-                x += dx
-            dy = (1 if y1 > y else -1)/self.speed
-            while y != y1:
-                self.move_queue.append((0, dy))
-                y += dy
-        else:
-            dy = (1 if y1 > y else -1)/self.speed
-            while y != y1:
-                self.move_queue.append((0, dy))
-                y += dy
-            dx = (1 if x1 > x else -1)/self.speed
-            while x != x1:
-                self.move_queue.append((dx, 0))
-                x += dx
-        self.moving = True
+    def move_to(self, x, y, x1, y1):
+        dx = (x1 - x)/self.speed
+        dy = (y1 - y)/self.speed
+        while x != x1 or y != y1:
+            self.move_queue.append((dx, dy))
+            x += dx
+            y += dy
+            self.moving = True
 
     def draw(self, screen):
         screen.blit(self.sprite, self.rect)
