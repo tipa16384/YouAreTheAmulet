@@ -106,9 +106,13 @@ class Actor:
     def draw(self, screen):
         screen.blit(self.sprite, self.rect)
 
-    def __lt__(self, other):
-        return self.y < other.y or self.x > other.x
+    def get_real_pos(self):
+        sx = self.x + self.y
+        sy = self.y - self.x
+        return (sy, sx)
 
+    def __lt__(self, other):
+        return self.get_real_pos() < other.get_real_pos()
 
 class Babus (Actor):
     def __init__(self, pos):

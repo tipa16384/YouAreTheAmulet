@@ -1,42 +1,57 @@
 from spritesheet import SpriteSheet
 import pygame
-from actor import Babus, Archer
+import random
 
 room_sprites = None
 wall_sprites = None
 room_sprite_width = 64
 room_sprite_height = 32
-wall_height = 2
+room_floor_width = 32
+room_floor_height = 16
+room_floor_sprite_height = 23
+wall_height = 3
 
 def init_rooms():
-    global room_sprites, wall_sprites
+    global room_sprites, wall_sprites, new_room_sprites
     room_sprites = SpriteSheet('small-interior.png')
     wall_sprites = SpriteSheet('tempwalls.png')
+    new_room_sprites = SpriteSheet('IsoTacticsTileset_by_SecretHideout_V1.1.png')
 
 def screen_coords(x, y):
     sx = (x+y)*room_sprite_width//2
     sy = (y-x)*room_sprite_height//2
     return (sx, sy)
 
+def screen_floor_coords(x, y):
+    sx = (x+y)*room_floor_width//2
+    sy = (y-x)*room_floor_height//2
+    return (sx, sy)
+
 class Room:
     def __init__(self, width: int, height: int, floor_type: str):
         self.width = width
         self.height = height
-        x = int(floor_type[0]) * room_sprite_width
-        y = int(floor_type[1]) * room_sprite_height
-        self.floor_type = room_sprites.image_at((x, y, room_sprite_width, room_sprite_height), colorkey=-1)
-        self.first_floor_type = room_sprites.image_at((room_sprite_width, y, room_sprite_width, room_sprite_height), colorkey=-1)
+        self.floor_type = new_room_sprites.load_strip((96, 9, 32, 23), 4, colorkey=-1)
+        self.wall_type = new_room_sprites.image_at((64, 41, 32, 23), colorkey=-1)
         self.left_wall = wall_sprites.image_at((0, 0, 32, 48), colorkey=-1)
         self.right_wall = pygame.transform.flip(self.left_wall, True, False)
         self.bottom_wall = wall_sprites.image_at((0, 0, 32, 48), colorkey=-1)
         self.bottom_wall.set_alpha(64)
         self.left_bottom_wall = pygame.transform.flip(self.bottom_wall, True, False)
-        self.actors = [Babus((1,3)), Archer((2,3))]
-
-        self.actors[0].setFacing(1)
-        self.actors[0].setIsPlayer(True)
-        self.actors[1].setFacing(-1)
+        self.actors = []
+        self.seed = random.randint(0, 1000000)
     
+    def choose_floor_type(self):
+        roll20 = random.randint(0, 20)
+        if roll20 < 10:
+            return self.floor_type[0]
+        elif roll20 < 15:
+            return self.floor_type[1]
+        elif roll20 < 18:
+            return self.floor_type[2]
+        else:
+            return self.floor_type[3]
+
     def rotate(self, x, y, rotation):
         if rotation == 0:
             return x, y
@@ -50,25 +65,27 @@ class Room:
     def draw(self, surface, rotation=0):
         nrot = rotation % 4
         screen_width, screen_height = surface.get_size()
-        maxx, maxy = screen_coords(self.width, self.height)
+        maxx, maxy = screen_floor_coords(self.width*2, self.height*2)
         dx = (screen_width - maxx) // 2
         dy = (screen_height - maxy) // 2
+        
+        for x in range(self.width*2, -2, -1):
+            bx, by = screen_floor_coords(x, -1)
+            for wy in range(wall_height):
+                surface.blit(self.wall_type, (bx+dx, by+dy-(room_floor_sprite_height - room_floor_height)*wy))
+        
+        for y in range(self.height * 2):
+            bx, by = screen_floor_coords(self.width * 2, y)
+            for wy in range(wall_height):
+                surface.blit(self.wall_type, (bx+dx, by+dy-(room_floor_sprite_height - room_floor_height)*wy))
 
-        for x in range(self.width):
-            for y in range(self.height):
+        random.seed(self.seed)
+
+        for x in range(self.width*2-1, -1, -1):
+            for y in range(self.height*2):
                 rx, ry = self.rotate(x, y, nrot)
-                bx, by = screen_coords(rx, ry)
-                surface.blit(self.first_floor_type if (x,y) == (2,0) else self.floor_type, (bx+dx, by+dy))
-        
-        for x in range(self.height if nrot & 1 else self.width):
-            bx, by = screen_coords(x, 0)
-            for wy in range(wall_height):
-                surface.blit(self.left_wall, (bx+dx, by+dy-32-32*wy))
-        
-        for y in range(self.width if nrot & 1 else self.height):
-            bx, by = screen_coords((self.height if nrot & 1 else self.width)-1, y)
-            for wy in range(wall_height):
-                surface.blit(self.right_wall, (bx+dx+32, by+dy-32-32*wy))
+                bx, by = screen_floor_coords(rx, ry)
+                surface.blit(self.choose_floor_type(), (bx+dx, by+dy))
         
         ssize = 64
 
@@ -80,13 +97,13 @@ class Room:
             rects = actor.get_rect()
             surface.blit(
                 sprite, (sx + dx + (ssize-rects[2])//2, sy + dy - rects[3]+ssize//3))
-
-        for x in range(self.height if nrot & 1 else self.width):
-            bx, by = screen_coords(x, self.width if nrot & 1 else self.height)
+        
+        for y in range(self.height * 2):
+            bx, by = screen_floor_coords(-1, y)
             for wy in range(wall_height):
-                surface.blit(self.bottom_wall, (bx+dx, by+dy-32-32*wy))
+                surface.blit(self.wall_type, (bx+dx, by+dy-(room_floor_sprite_height - room_floor_height)*wy))
 
-        for y in range(self.width if nrot & 1 else self.height):
-            bx, by = screen_coords(-1, y)
+        for x in range(self.width*2, -2, -1):
+            bx, by = screen_floor_coords(x, self.height * 2)
             for wy in range(wall_height):
-                surface.blit(self.left_bottom_wall, (bx+dx+32, by+dy-32-32*wy))
+                surface.blit(self.wall_type, (bx+dx, by+dy-(room_floor_sprite_height - room_floor_height)*wy))
