@@ -1,2 +1,4 @@
 
 *.pyc
+__pycache__/actor.cpython-39.pyc
+__pycache__/room.cpython-39.pyc

@@ -17,8 +17,8 @@ class Actor:
         self.animated = type(sprites[0]) == list
         self.move_queue = list()
         self.frame = 0
-        self.rotation = 0
         self.is_player = False
+        self.room = None
 
     def getMoving(self):
         return self.moving
@@ -38,9 +38,6 @@ class Actor:
     
     def getIsPlayer(self):
         return self.is_player
-
-    def setRotation(self, rotation):
-        self.rotation = rotation
 
     def setFacing(self, facing):
         self.facing = facing
@@ -65,7 +62,7 @@ class Actor:
         self.frame += 1
 
     def getRotatedFacing(self):
-        return (self.facing + self.rotation) % 4
+        return self.facing % 4
 
     def get_rect(self):
         return self.rects[self.getRotatedFacing()]

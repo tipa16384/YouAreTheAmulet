@@ -1,9 +1,7 @@
 import pygame
-from spritesheet import SpriteSheet
 from pygame.time import Clock
 from room import Room, init_rooms
 import sys
-from itertools import cycle
 from floor import Floor
 from random import randint, shuffle
 from actor import Babus, Archer, Templar, Mog
@@ -23,24 +21,21 @@ class Amulet:
         pygame.time.set_timer(self.animation_event, 250)
         self.movement_event = pygame.USEREVENT + 2
         pygame.time.set_timer(self.movement_event, 1000//120)
+        self.actors = []
 
         self.new_message("Use the arrow keys to move around. Press P to swap players. Press ESC to quit.")
         self.new_alert("Welcome to Tactics Roguelike Engine Advance!")
     
     def get_player_room(self):
-        for floor in self.floors:
-            for room in floor.rooms:
-                for actor in room.actors:
-                    if actor.getIsPlayer():
-                        return room
+        for actor in self.actors:
+            if actor.getIsPlayer():
+                return actor.room
         return None
     
     def get_player(self):
-        for floor in self.floors:
-            for room in floor.rooms:
-                for actor in room.actors:
-                    if actor.getIsPlayer():
-                        return actor
+        for actor in self.actors:
+            if actor.getIsPlayer():
+                return actor
         return None
 
     def add_floor(self, floor):
@@ -50,8 +45,9 @@ class Amulet:
         return self.floors
 
     def object_at(self, x, y):
-        for actor in self.get_player_room().actors:
-            if actor.getPos() == (x, y):
+        room = self.get_player_room()
+        for actor in self.actors:
+            if actor.room == room and actor.getPos() == (x, y):
                 return actor
         return None
 
@@ -82,9 +78,9 @@ class Amulet:
     def swap_player(self):
         room = self.get_player_room()
         player = self.get_player()
-        pi = room.actors.index(player)
-        new_player = room.actors[pi+1] if pi < len(
-            room.actors) - 1 else room.actors[0]
+        pi = self.actors.index(player)
+        new_player = self.actors[pi+1] if pi < len(
+            self.actors) - 1 else self.actors[0]
         player.setIsPlayer(False)
         new_player.setIsPlayer(True)
         self.new_alert("Swapped players")
@@ -129,21 +125,17 @@ class Amulet:
                     except AttributeError:
                         pass
                 elif event.type == self.animation_event:
-                    for actor in room.actors:
+                    for actor in (a for a in self.actors if a.room == room):
                         actor.animate()
                         if actor != player:
                             actor.face_player(player.x, player.y)
                 elif event.type == self.movement_event:
-                    actors_in_motion = [
-                        actor for actor in room.actors if actor.getMoving()]
-
-                    if actors_in_motion:
-                        for actor in actors_in_motion:
-                            actor.update()
+                    for actor in [a for a in self.actors if a.getMoving()]:
+                        actor.update()
 
             self.screen.fill((0, 0, 0))
 
-            room.draw(self.screen, self.rotation)
+            room.draw(self.screen, self.actors)
 
             self.screen.blit(self.instructions, ((self.screen.get_width() - self.instructions.get_width())//2, \
                 self.screen.get_height() - 5 * self.instructions.get_height()))
@@ -173,10 +165,13 @@ def create_map(amulet: Amulet):
     shuffle(all_spaces)
     player = Babus(all_spaces.pop())
     player.setIsPlayer(True)
-    room.actors.append(player)
-    room.actors.append(Archer(all_spaces.pop()))
-    room.actors.append(Templar(all_spaces.pop()))
-    room.actors.append(Mog(all_spaces.pop()))
+    amulet.actors.append(player)
+    amulet.actors.append(Archer(all_spaces.pop()))
+    amulet.actors.append(Templar(all_spaces.pop()))
+    amulet.actors.append(Mog(all_spaces.pop()))
+    for actor in amulet.actors:
+        actor.room = room
+        print (f"{type(actor).__name__} is in room {type(actor.room).__name__}")
 
 if __name__ == '__main__':
     amulet = Amulet()
