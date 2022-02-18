@@ -5,7 +5,7 @@ import sys
 from floor import Floor
 from random import randint, shuffle
 from actor import Babus, Archer, Templar, Mog
-
+from functools import reduce
 
 class Amulet:
     def __init__(self):
@@ -76,7 +76,6 @@ class Amulet:
             player.move_to(px, py, nx, ny)
 
     def swap_player(self):
-        room = self.get_player_room()
         player = self.get_player()
         pi = self.actors.index(player)
         new_player = self.actors[pi+1] if pi < len(
@@ -119,6 +118,9 @@ class Amulet:
                             self.move_player(False)
                         elif event.key == pygame.K_p:
                             self.swap_player()
+                        elif event.key == pygame.K_F5:
+                            self.new_alert("Restarting game...")
+                            create_map(self)
                         elif event.key == pygame.K_PRINTSCREEN:
                             pygame.image.save(self.screen, "screenshot.png")
                             self.new_alert("Screenshot saved to screenshot.png")
@@ -132,6 +134,10 @@ class Amulet:
                 elif event.type == self.movement_event:
                     for actor in [a for a in self.actors if a.getMoving()]:
                         actor.update()
+                    for actor in [a for a in self.actors if not a.getMoving() and not a.getIsPlayer()]:
+                        bad_spaces = set((b for a in self.actors if a.room == room for b in a.i_am_at()))
+                        actor.pathfind(player, bad_spaces)
+
 
             self.screen.fill((0, 0, 0))
 
@@ -155,6 +161,9 @@ class Amulet:
 
 
 def create_map(amulet: Amulet):
+    amulet.floors = []
+    amulet.actors = []
+
     floor = Floor('Test Floor')
     amulet.add_floor(floor)
 
@@ -171,7 +180,6 @@ def create_map(amulet: Amulet):
     amulet.actors.append(Mog(all_spaces.pop()))
     for actor in amulet.actors:
         actor.room = room
-        print (f"{type(actor).__name__} is in room {type(actor.room).__name__}")
 
 if __name__ == '__main__':
     amulet = Amulet()

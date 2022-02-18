@@ -1,7 +1,11 @@
 from spritesheet import SpriteSheet
 import pygame
+import heapq
 
 __facing_deltas__ = [(0,-1), (1,0), (0,1), (-1,0)]
+
+def manhattan_distance(a, b):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 class Actor:
     def __init__(self, sprites, rects, pos, facing=3):
@@ -12,6 +16,8 @@ class Actor:
         self.x, self.y = pos
         self.dx = 0
         self.dy = 0
+        self.path_start = None
+        self.path_end = None
         self.speed = 16
         self.moving = False
         self.animated = type(sprites[0]) == list
@@ -43,6 +49,10 @@ class Actor:
         self.facing = facing
     
     def face_player(self, px, py):
+        if not self.moving:
+            self.face_at(px, py)
+
+    def face_at(self, px, py):
         dx = px - self.x
         dy = py - self.y
 
@@ -73,6 +83,12 @@ class Actor:
         else:
             return self.sprites[self.getRotatedFacing()][self.frame % len(self.sprites[self.getRotatedFacing()])]
 
+    def i_am_at(self):
+        if self.moving:
+            return [self.path_end, self.path_start]
+        else:
+            return [self.pos]
+
     def update(self):
         if self.moving:
             self.move()
@@ -81,17 +97,21 @@ class Actor:
             self.dy = 0
         self.x += self.dx
         self.y += self.dy
-        self.pos = (self.x, self.y)
+        self.pos = (int(self.x), int(self.y))
 
     def move(self):
         if self.move_queue:
             self.dx, self.dy = self.move_queue.pop(0)
         else:
             self.moving = False
+            self.path_end, self.path_start = None, None
+            self.x, self.y = int(self.x), int(self.y)
+            self.pos = (self.x, self.y)
             self.dx, self.dy = 0, 0
             self.frame = 0
 
     def move_to(self, x, y, x1, y1):
+        self.face_player(x1, y1)
         dx = (x1 - x)/self.speed
         dy = (y1 - y)/self.speed
         while x != x1 or y != y1:
@@ -99,6 +119,8 @@ class Actor:
             x += dx
             y += dy
             self.moving = True
+            self.path_end = (x1, y1)
+            self.path_start = (x, y)
 
     def draw(self, screen):
         screen.blit(self.sprite, self.rect)
@@ -107,6 +129,42 @@ class Actor:
         sx = self.x + self.y
         sy = self.y - self.x
         return (sy, sx)
+
+    def in_room(self, x, y):
+        if x < 0 or y < 0:
+            return False
+        if x >= self.room.width or y >= self.room.height:
+            return False
+        return True
+
+    def good_pos(self, pos, player_pos):
+        return manhattan_distance(pos, player_pos) == 4
+
+    def pathfind(self, player, bad_spaces):
+        if self.room != player.room or self.moving:
+            return
+
+        heap = list()
+        heapq.heappush(heap, (0, self.pos, []))
+        closed_nodes = set()
+        while heap:
+            dist, pos, path = heapq.heappop(heap)
+            if self.good_pos(pos, player.getPos()):
+                if len(path):
+                    self.move_to(*self.pos, *path[0])
+                return
+            if pos in closed_nodes:
+                continue
+            closed_nodes.add(pos)
+            for dx, dy in __facing_deltas__:
+                new_pos = (pos[0] + dx, pos[1] + dy)
+                if new_pos in closed_nodes:
+                    continue
+                if not self.in_room(*new_pos):
+                    continue
+                if new_pos in bad_spaces:
+                    continue
+                heapq.heappush(heap, (dist+1, new_pos, path + [new_pos]))
 
     def __lt__(self, other):
         return self.get_real_pos() < other.get_real_pos()
@@ -154,6 +212,12 @@ class Archer (Actor):
             archer, True, False) for archer in sprites.images_at(archer_rects, colorkey=-1)]
         super().__init__([archer_u, archer_r, archer_d, archer_l, archer_jump], [
             (0, 0, 32, 60), (0, 0, 32, 60), (0, 0, 32, 60), (0, 0, 32, 60), (0, 0, 32, 62)], pos)
+        
+    def good_pos(self, pos, player_pos):
+        dist = manhattan_distance(pos, player_pos)
+        return dist >= 3 and dist <= 5
+
+
 
 
 class Templar (Actor):
@@ -176,7 +240,10 @@ class Templar (Actor):
         templar_jump = sprites.images_at(templar_rects, colorkey=-1)
         super().__init__([templar_u, templar_r, templar_d, templar_l, templar_jump], [
             (0, 0, 32, 56), (0, 0, 32, 56), (0, 0, 32, 56), (0, 0, 32, 56), (0, 0, 34, 66)], pos)
-
+        
+    def good_pos(self, pos, player_pos):
+        dist = manhattan_distance(pos, player_pos)
+        return dist == 1
 
 class Mog (Actor):
     def __init__(self, pos):
@@ -196,6 +263,9 @@ class Mog (Actor):
             mog, True, False) for mog in sprites.images_at(mog_rects, colorkey=-1)]
         super().__init__([mog_u, mog_r, mog_d, mog_l, mog_jump], [
             (0, 0, 32, 56), (0, 0, 32, 56), (0, 0, 32, 56), (0, 0, 32, 56), (0, 0, 32, 68)], pos)
+        
+    def good_pos(self, pos, player_pos):
+        return pos[0] == player_pos[0] or pos[1] == player_pos[1]
 
 
 def find_actor(actors: list, move) -> Actor:
