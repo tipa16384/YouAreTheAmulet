@@ -4,8 +4,9 @@ from room import Room, init_rooms
 import sys
 from floor import Floor
 from random import randint, shuffle
-from actor import Babus, Archer, Templar, Mog
+from actor import Babus, Archer, Templar, Mog, Actor
 from functools import reduce
+from staticobject import StaticObject, Pillar
 
 class Amulet:
     def __init__(self):
@@ -91,12 +92,20 @@ class Amulet:
         self.alert = self.myfont.render(message, True, (255, 255, 0))
         self.alert_time = pygame.time.get_ticks()
 
+    def actors_in_room(self, room):
+        return list(actor for actor in self.actors if isinstance(actor, Actor) and actor.room == room)
+
+    def objects_in_room(self, room):
+        return list(actor for actor in self.actors if isinstance(actor, StaticObject) and actor.room == room)
+
     def game_loop(self):
         running = True
 
         while running:
             room = self.get_player_room()
             player = self.get_player()
+            actors = self.actors_in_room(room)
+            objects = self.objects_in_room(room)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -127,21 +136,21 @@ class Amulet:
                     except AttributeError:
                         pass
                 elif event.type == self.animation_event:
-                    for actor in (a for a in self.actors if a.room == room):
+                    for actor in (a for a in actors if a.room == room):
                         actor.animate()
                         if actor != player:
                             actor.face_player(player.x, player.y)
                 elif event.type == self.movement_event:
-                    for actor in [a for a in self.actors if a.getMoving()]:
+                    for actor in [a for a in actors if a.getMoving()]:
                         actor.update()
-                    for actor in [a for a in self.actors if not a.getMoving() and not a.getIsPlayer()]:
-                        bad_spaces = set((b for a in self.actors if a.room == room for b in a.i_am_at()))
+                    for actor in [a for a in actors if not a.getMoving() and not a.getIsPlayer()]:
+                        bad_spaces = set((b for a in objects for b in a.i_am_at()))
                         actor.pathfind(player, bad_spaces)
 
 
             self.screen.fill((0, 0, 0))
 
-            room.draw(self.screen, self.actors)
+            room.draw(self.screen, objects)
 
             self.screen.blit(self.instructions, ((self.screen.get_width() - self.instructions.get_width())//2, \
                 self.screen.get_height() - 5 * self.instructions.get_height()))
@@ -178,6 +187,8 @@ def create_map(amulet: Amulet):
     amulet.actors.append(Archer(all_spaces.pop()))
     amulet.actors.append(Templar(all_spaces.pop()))
     amulet.actors.append(Mog(all_spaces.pop()))
+    for _ in range(4):
+        amulet.actors.append(Pillar(all_spaces.pop()))
     for actor in amulet.actors:
         actor.room = room
 

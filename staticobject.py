@@ -1,0 +1,52 @@
+from spritesheet import SpriteSheet
+
+class StaticObject:
+    def __init__(self, sprites, rects, pos):
+        self.sprites = sprites
+        self.pos = pos
+        self.rects = rects
+        self.x, self.y = pos
+        self.animated = type(sprites[0]) == list
+        self.room = None
+
+    def getPos(self):
+        return self.pos
+    
+    def setPos(self, pos):
+        self.x, self.y = pos
+        self.pos = pos
+
+    def get_sprite(self):
+        return self.sprites[0]
+
+    def i_am_at(self):
+        return [self.pos]
+
+    def draw(self, screen):
+        screen.blit(self.sprite, self.rect)
+
+    def get_real_pos(self):
+        sx = self.x + self.y
+        sy = self.y - self.x
+        return (sy, sx)
+
+    def in_room(self, x, y):
+        if x < 0 or y < 0:
+            return False
+        if x >= self.room.width or y >= self.room.height:
+            return False
+        return True
+
+    def get_rect(self):
+        return self.rect
+
+    def __lt__(self, other):
+        return self.get_real_pos() < other.get_real_pos()
+
+class Pillar(StaticObject):
+    def __init__(self, pos):
+        sprites = SpriteSheet("iso-64x64-building_3.png").load_strip((64, 0, 64, 64), 1, colorkey = -1)
+        super().__init__(sprites, None, pos)
+        self.sprite = sprites[0]
+        self.rect = self.sprite.get_rect()
+        self.room = None
