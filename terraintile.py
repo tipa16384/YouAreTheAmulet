@@ -17,8 +17,8 @@ class TerrainTileFactory:
         #     return WallTile()
         # elif tileType == TileType.FLOOR:
         #     return FloorTile()
-        # elif tileType == TileType.ROOM:
-        #     return RoomTile()
+        elif tileType == TileType.ROOM:
+            return RoomTile()
         else:
             raise Exception("Invalid tile type")
 
@@ -44,4 +44,13 @@ class OutsideTile(TerrainTile):
         if (random.randint(0, 15) == 0):
             return self.images[random.randint(9, len(self.images)-1)]
         return self.images[random.randint(0, 8)]
+
+class RoomTile(TerrainTile):
+    def __init__(self):
+        super().__init__(64, 64, 32)
+        inside_sprites = SpriteSheet('iso-64x64-building_3.png')
+        self.images = [inside_sprites.image_at((0, 0, 64, 64), colorkey=-1)]
+    
+    def choose_random_image(self):
+        return self.images[0]
 

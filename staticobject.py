@@ -45,8 +45,8 @@ class StaticObject:
 
 class Pillar(StaticObject):
     def __init__(self, pos):
-        sprites = SpriteSheet("iso-64x64-building_3.png").load_strip((64, 0, 64, 64), 1, colorkey = -1)
+        sprites = SpriteSheet("iso-64x64-outside.png").load_strip((202, 811, 41, 71), 1, colorkey = -1)
         super().__init__(sprites, None, pos)
         self.sprite = sprites[0]
-        self.rect = self.sprite.get_rect()
+        self.rect = (0,0,41,71)
         self.room = None

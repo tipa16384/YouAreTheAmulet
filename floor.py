@@ -2,6 +2,7 @@ class Floor:
     def __init__(self, floor_name):
         self.floor_name = floor_name
         self.rooms = []
+        self.exits = []
 
     def get_floor_name(self):
         return self.floor_name

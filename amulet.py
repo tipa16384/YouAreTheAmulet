@@ -1,12 +1,14 @@
 import pygame
 from pygame.time import Clock
-from room import Room, init_rooms
+from room import Room
 import sys
 from floor import Floor
 from random import randint, shuffle
 from actor import Babus, Archer, Templar, Mog, Actor
 from functools import reduce
 from staticobject import StaticObject, Pillar
+from terraintile import TileType
+from exit import Exit
 
 class Amulet:
     def __init__(self):
@@ -15,7 +17,6 @@ class Amulet:
         self.screen = pygame.display.set_mode((768, 640))
         self.myfont = pygame.font.SysFont(None, 24)
         self.floors = []
-        init_rooms()
         self.clock = Clock()
         self.rotation = 0
         self.animation_event = pygame.USEREVENT + 1
@@ -23,6 +24,9 @@ class Amulet:
         self.movement_event = pygame.USEREVENT + 2
         pygame.time.set_timer(self.movement_event, 1000//120)
         self.actors = []
+        pygame.mixer.init()
+        pygame.mixer.music.load("badkalimba.mp3")
+        pygame.mixer.music.play()
 
         self.new_message("Use the arrow keys to move around. Press P to swap players. Press ESC to quit.")
         self.new_alert("Welcome to Tactics Roguelike Engine Advance!")
@@ -150,7 +154,7 @@ class Amulet:
 
             self.screen.fill((0, 0, 0))
 
-            room.draw(self.screen, objects)
+            room.draw(self.screen, objects, self.get_floors()[0].exits)
 
             self.screen.blit(self.instructions, ((self.screen.get_width() - self.instructions.get_width())//2, \
                 self.screen.get_height() - 5 * self.instructions.get_height()))
@@ -176,8 +180,12 @@ def create_map(amulet: Amulet):
     floor = Floor('Test Floor')
     amulet.add_floor(floor)
 
-    room = Room(randint(7, 10), randint(7, 10), '02')
+    room = Room(10, 10, TileType.OUTSIDE)
     floor.add_room(room)
+    other_room = Room(5, 7, TileType.ROOM)
+    floor.add_room(other_room)
+
+    floor.exits.append(Exit((room, 3, -1), (other_room, 4, other_room.height)))
 
     all_spaces = [(x, y) for x in range(room.width) for y in range(room.height)]
     shuffle(all_spaces)
