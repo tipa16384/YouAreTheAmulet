@@ -2,7 +2,6 @@ import random
 from terraintile import TileType, TerrainTileFactory
 from spritesheet import SpriteSheet
 
-
 class Room:
     def __init__(self, width: int, height: int, floor_type: TileType):
         self.width = width
@@ -14,6 +13,7 @@ class Room:
             (15, 9, 32, 47), colorkey=-1)
         self.exit_ew = SpriteSheet("portals.png").image_at(
             (54, 9, 32, 48), colorkey=-1)
+        self.name = "Room"
 
     def screen_coords(self, x, y):
         sx = (x+y)*self.floor_tile.width//2

@@ -1,0 +1,29 @@
+- floor: Test Floor
+  rooms:
+  - room: &rm0101 Entry Room
+    width: 10
+    height: 10
+    tileType: OUTSIDE
+  - room: &rm0102 Other Room
+    width: &rm0102width 5
+    height: &rm0102height 7
+    tileType: ROOM
+  - room: &rm0103 Corridor
+    width: 10
+    height: 1
+    tileType: GRASS
+  exits:
+  - exit:
+    - room: *rm0101
+      x: 3
+      y: -1
+    - room: *rm0102
+      x: 4
+      y: *rm0102height
+  - exit:
+    - room: *rm0103
+      x: -1
+      y: 0
+    - room: *rm0102
+      x: *rm0102width
+      y: 2
