@@ -31,13 +31,13 @@ class Amulet:
 
     def get_player_room(self):
         for actor in self.actors:
-            if actor.getIsPlayer():
+            if isinstance(actor, Actor) and actor.getIsPlayer():
                 return actor.room
         return None
 
     def get_player(self):
         for actor in self.actors:
-            if actor.getIsPlayer():
+            if isinstance(actor, Actor) and actor.getIsPlayer():
                 return actor
         return None
 

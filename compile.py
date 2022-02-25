@@ -2,7 +2,7 @@ import json
 import yaml
 
 yaml_fn = 'amulet.yaml'
-json_fn = 'amulet.json'
+json_fn = 'amulet.dat'
 
 with open(yaml_fn, "r") as stream:
     try:

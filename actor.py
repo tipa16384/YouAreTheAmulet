@@ -25,6 +25,7 @@ class Actor(StaticObject):
         self.move_queue = list()
         self.frame = 0
         self.is_player = False
+        self.name = "Actor"
 
     def getMoving(self):
         return self.moving
