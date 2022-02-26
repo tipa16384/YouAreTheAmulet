@@ -1,5 +1,3 @@
-from spritesheet import SpriteSheet
-import pygame
 import heapq
 from staticobject import StaticObject
 from math import sqrt, pow
@@ -17,7 +15,7 @@ def manhattan_distance(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 def distance(a, b):
-    return round(sqrt(pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2)))
+    return sqrt(pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2))
 
 class Actor(StaticObject):
     def __init__(self, sprites, rects, pos, facing=3):
@@ -132,7 +130,6 @@ class Actor(StaticObject):
         for i in range(dist):
             x = int(from_pos[0] + (to_pos[0] - from_pos[0])/dist * i)
             y = int(from_pos[1] + (to_pos[1] - from_pos[1])/dist * i)
-
             if (x, y) != from_pos and (x, y) != to_pos and (x, y) in bad_spaces:
                 return False
 
@@ -140,27 +137,31 @@ class Actor(StaticObject):
         
     def good_pos(self, pos, player_pos, bad_spaces):
         if self.behavior == Behavior.MAGIC:
-            return distance(pos, player_pos) == 4
+            dist = distance(pos, player_pos)
+            return dist > 3.0 and dist <= 4.0
         elif self.behavior == Behavior.ARCHER:
-            dist = manhattan_distance(pos, player_pos)
+            dist = distance(pos, player_pos)
             return self.line_of_sight(pos, player_pos, bad_spaces) and dist >= 3 and dist <= 5
         elif self.behavior == Behavior.MELEE:
             dist = distance(pos, player_pos)
-            return dist == 1
+            return dist <= 1.0
         elif self.behavior == Behavior.CHARGE:
             return self.line_of_sight(pos, player_pos, bad_spaces) and (pos[0] == player_pos[0] or pos[1] == player_pos[1])
-        return distance(pos, player_pos) == 4
+        dist = distance(pos, player_pos)
+        return dist > 3.0 and dist <= 4.0
 
     def pathfind(self, player, bad_spaces):
         if self.room != player.room or self.moving:
             return
+
+        player_pos = player.pos if not player.moving else player.path_end
 
         heap = list()
         heapq.heappush(heap, (0, self.pos, []))
         closed_nodes = set()
         while heap:
             dist, pos, path = heapq.heappop(heap)
-            if self.good_pos(pos, player.getPos(), bad_spaces):
+            if self.good_pos(pos, player_pos, bad_spaces):
                 if len(path):
                     self.move_to(*self.pos, *path[0])
                 return

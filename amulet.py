@@ -127,6 +127,7 @@ class Amulet:
 
     def game_loop(self):
         running = True
+        playerMoved = False
 
         while running:
             room = self.get_player_room()
@@ -150,6 +151,7 @@ class Amulet:
                             self.rotate_player(1)
                         elif event.key == pygame.K_UP:
                             self.move_player(True)
+                            playerMoved = True
                         elif event.key == pygame.K_DOWN:
                             self.rotate_player(2)
                         elif event.key == pygame.K_p:
@@ -171,10 +173,12 @@ class Amulet:
                 elif event.type == self.movement_event:
                     for actor in [a for a in actors if a.getMoving()]:
                         actor.update()
-                    for actor in [a for a in actors if not a.getMoving() and not a.getIsPlayer()]:
-                        bad_spaces = set(
-                            (b for a in objects for b in a.i_am_at()))
-                        actor.pathfind(player, bad_spaces)
+                    if playerMoved:
+                        for actor in [a for a in actors if not a.getMoving() and not a.getIsPlayer()]:
+                            bad_spaces = set(
+                                (b for a in objects for b in a.i_am_at() if a != actor))
+                            actor.pathfind(player, bad_spaces)
+                        playerMoved = False
 
             self.screen.fill((0, 0, 0))
 
