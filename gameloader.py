@@ -3,7 +3,7 @@ from floor import Floor
 from room import Room
 from exit import Exit
 from random import shuffle
-from actor import Babus, Archer, Templar, Mog, Actor
+from actor import Behavior, Actor
 from staticobject import Pillar
 from terraintile import TileType
 import pygame
@@ -20,6 +20,7 @@ def create_map(amulet):
 
     for floor_yaml in game_yaml:
         floor_room_map = dict()
+        floor_room_tiles_map = dict()
 
         floor = Floor(floor_yaml['floor'])
         amulet.add_floor(floor)
@@ -30,6 +31,10 @@ def create_map(amulet):
             froom.name = room['room']
             floor.add_room(froom)
             floor_room_map[froom.name] = froom
+            all_spaces = [(x, y) for x in range(froom.width)
+                    for y in range(froom.height)]
+            shuffle(all_spaces)
+            floor_room_tiles_map[froom.name] = all_spaces
         
         for exit in floor_yaml['exits']:
             from_room = exit['exit'][0]
@@ -39,24 +44,20 @@ def create_map(amulet):
             floor.exits.append(Exit(tuple1, tuple2))
 
         room = floor_room_map['Entry Room']
-        all_spaces = [(x, y) for x in range(room.width)
-                    for y in range(room.height)]
-        shuffle(all_spaces)
-        # player = Babus(all_spaces.pop())
-        # player.setIsPlayer(True)
-        # amulet.actors.append(player)
-        # amulet.actors.append(Archer(all_spaces.pop()))
-        amulet.actors.append(Templar(all_spaces.pop()))
-        amulet.actors.append(Mog(all_spaces.pop()))
-        load_actors(amulet, floor_yaml, room, all_spaces)
+        all_spaces = floor_room_tiles_map['Entry Room']
+
+        load_actors(amulet, floor_yaml, floor_room_map, floor_room_tiles_map)
         for _ in range(4):
             amulet.actors.append(Pillar(all_spaces.pop()))
         for actor in amulet.actors:
-            actor.room = room
+            if actor.room is None:
+                actor.room = room
 
-def load_actors(amulet, floor_yaml, room, all_spaces):
+def load_actors(amulet, floor_yaml, floor_room_map, floor_room_tiles_map):
     for actor in floor_yaml['actors']:
-        print (f"Creating {actor['actor']} from {actor}")
+        room_name = actor['room'] if 'room' in actor else 'Entry Room'
+        all_spaces = floor_room_tiles_map[room_name]
+
         sprites = SpriteSheet(actor['spritesheet'])
         left = sprites.images_at(actor['west'], colorkey=-1)
         if 'south' in actor:
@@ -72,13 +73,12 @@ def load_actors(amulet, floor_yaml, room, all_spaces):
 
         jump = sprites.images_at(actor['jump'], colorkey=-1)
         p_actor = Actor([up, right, down, left, jump], actor['rects'], all_spaces.pop())
-        print (f"Created {p_actor}")
         p_actor.name = actor['actor']
         if 'isplayer' in actor:
             p_actor.setIsPlayer(actor['isplayer'])
         else:
             p_actor.setIsPlayer(False)
+        if 'behavior' in actor:
+            p_actor.behavior = eval('Behavior.' + actor['behavior'])
+        p_actor.room = floor_room_map[room_name]
         amulet.actors.append(p_actor)
-        p_actor.room = room
-
-

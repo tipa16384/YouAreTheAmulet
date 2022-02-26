@@ -104,12 +104,13 @@ class Amulet:
 
     def swap_player(self):
         player = self.get_player()
-        pi = self.actors.index(player)
-        new_player = self.actors[pi+1] if pi < len(
-            self.actors) - 1 else self.actors[0]
+        local_actors = self.actors_in_room(player.room)
+        pi = local_actors.index(player)
+        new_player = local_actors[pi+1] if pi < len(
+            local_actors) - 1 else local_actors[0]
         player.setIsPlayer(False)
         new_player.setIsPlayer(True)
-        self.new_alert("Swapped players")
+        self.new_alert(f"You are now {new_player.name}")
 
     def new_message(self, message):
         self.instructions = self.myfont.render(message, True, (255, 255, 255))
@@ -188,7 +189,7 @@ class Amulet:
                     self.alert = None
                 else:
                     self.screen.blit(self.alert, ((self.screen.get_width() - self.alert.get_width())//2,
-                                                  self.screen.get_height() - 6 * self.alert.get_height()))
+                                                  self.screen.get_height() - 4 * self.alert.get_height()))
 
             pygame.display.flip()
 
