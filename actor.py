@@ -31,7 +31,13 @@ class Actor(StaticObject):
         self.frame = 0
         self.is_player = False
         self.name = "Actor"
-        self.behavior = Behavior.MELEE
+        self.inventory = list()
+
+    def get_behavior(self):
+        for item in self.inventory:
+            if item.is_wielded() and 'behavior' in item.template:
+                return eval('Behavior.' + item.template['behavior'])
+        return Behavior.MELEE
 
     def getMoving(self):
         return self.moving
@@ -136,16 +142,17 @@ class Actor(StaticObject):
         return True
         
     def good_pos(self, pos, player_pos, bad_spaces):
-        if self.behavior == Behavior.MAGIC:
+        behavior = self.get_behavior()
+        if behavior == Behavior.MAGIC:
             dist = distance(pos, player_pos)
-            return dist > 3.0 and dist <= 4.0
-        elif self.behavior == Behavior.ARCHER:
+            return self.line_of_sight(pos, player_pos, bad_spaces) and dist > 3.0 and dist <= 4.0
+        elif behavior == Behavior.ARCHER:
             dist = distance(pos, player_pos)
             return self.line_of_sight(pos, player_pos, bad_spaces) and dist >= 3 and dist <= 5
-        elif self.behavior == Behavior.MELEE:
+        elif behavior == Behavior.MELEE:
             dist = distance(pos, player_pos)
             return dist <= 1.0
-        elif self.behavior == Behavior.CHARGE:
+        elif behavior == Behavior.CHARGE:
             return self.line_of_sight(pos, player_pos, bad_spaces) and (pos[0] == player_pos[0] or pos[1] == player_pos[1])
         dist = distance(pos, player_pos)
         return dist > 3.0 and dist <= 4.0
