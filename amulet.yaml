@@ -1,3 +1,20 @@
+weapons:
+- item: &firewand wand of fire
+  itemType: WAND
+  behavior: MAGIC
+  canWield: True
+- item: &longbow longbow
+  itemType: BOW
+  behavior: ARCHER
+  canWield: True
+- item: &broadsword broadsword
+  itemType: SWORD
+  behavior: MELEE
+  canWield: True
+- item: &lance knight's lance
+  itemType: POLEARM
+  behavior: CHARGE
+  canWield: True
 library:
 - actor: &babus Babus
   spritesheet: babus.png
@@ -76,10 +93,19 @@ floors:
       - actor: *babus
         isplayer: True
         room: *rm0101
+        inventory:
+        - item: *firewand
       - actor: *archer
         isplayer: False
         room: *rm0103
+        inventory:
+        - item: *longbow
       - actor: *templar
         room: *rm0101
+        inventory:
+        - item: *broadsword
       - actor: *mogknight
         room: *rm0102
+        inventory:
+        - item: *lance
+

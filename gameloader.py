@@ -8,6 +8,7 @@ from staticobject import Pillar
 from terraintile import TileType
 import pygame
 from spritesheet import SpriteSheet
+from item import Item
 
 json_fn = 'amulet.dat'
 
@@ -17,11 +18,16 @@ def create_map(amulet):
     
     amulet.floors = []
     amulet.actors = []
-    amulet.library = game_yaml['library']
 
     library_map = dict()
-    for actor in amulet.library:
+    for actor in game_yaml['library']:
         library_map[actor['actor']] = actor
+    amulet.library = library_map
+
+    weapon_map = dict()
+    for weapon in game_yaml['weapons']:
+        weapon_map[weapon['item']] = weapon
+    amulet.weapons = weapon_map
 
     for floor_yaml in game_yaml['floors']:
         floor_room_map = dict()
@@ -51,18 +57,18 @@ def create_map(amulet):
         room = floor_room_map['Entry Room']
         all_spaces = floor_room_tiles_map['Entry Room']
 
-        load_actors(amulet, floor_yaml, floor_room_map, floor_room_tiles_map, library_map)
+        load_actors(amulet, floor_yaml, floor_room_map, floor_room_tiles_map)
         for _ in range(4):
             amulet.actors.append(Pillar(all_spaces.pop()))
         for actor in amulet.actors:
             if actor.room is None:
                 actor.room = room
 
-def load_actors(amulet, floor_yaml, floor_room_map, floor_room_tiles_map, library_map):
+def load_actors(amulet, floor_yaml, floor_room_map, floor_room_tiles_map):
     for actor in floor_yaml['actors']:
         room_name = actor['room'] if 'room' in actor else 'Entry Room'
         all_spaces = floor_room_tiles_map[room_name]
-        template = library_map[actor['actor']]
+        template = amulet.library[actor['actor']]
 
         sprites = SpriteSheet(template['spritesheet'])
         left = sprites.images_at(template['west'], colorkey=-1)
@@ -84,7 +90,15 @@ def load_actors(amulet, floor_yaml, floor_room_map, floor_room_tiles_map, librar
             p_actor.setIsPlayer(actor['isplayer'])
         else:
             p_actor.setIsPlayer(False)
-        if 'behavior' in template:
-            p_actor.behavior = eval('Behavior.' + template['behavior'])
+
+        for item in actor['inventory']:
+            pitem = Item(amulet.weapons[item['item']])
+            pitem.identified = True
+            p_actor.inventory.append(pitem)
+
+        wieldable_items = [item for item in p_actor.inventory if item.can_wield()]
+        if wieldable_items:
+            wieldable_items[0].wield()
+
         p_actor.room = floor_room_map[room_name]
         amulet.actors.append(p_actor)

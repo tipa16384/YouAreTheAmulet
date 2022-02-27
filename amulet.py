@@ -186,6 +186,8 @@ class Amulet:
 
             self.screen.blit(self.instructions, ((self.screen.get_width() - self.instructions.get_width())//2,
                                                  self.screen.get_height() - 5 * self.instructions.get_height()))
+            
+            print_status(self, player)
 
             # if alert is set, display it for a while
             if self.alert is not None:
@@ -199,6 +201,19 @@ class Amulet:
 
         pygame.time.set_timer(self.animation_event, 0)
         pygame.time.set_timer(self.movement_event, 0)
+
+def print_status(amulet: Amulet, player: Actor):
+    lines = list()
+    lines.append(amulet.myfont.render("You are " + player.name, True, (0, 255, 0)))
+    for item in player.inventory:
+        name = str(item)
+        if item.is_wielded():
+            name = "wielding " + name
+        lines.append(amulet.myfont.render(name, True, (0, 255, 0)))
+    top = 5
+    for line in lines:
+        amulet.screen.blit(line, (0, top))
+        top += line.get_height()
 
 if __name__ == '__main__':
     amulet = Amulet()
