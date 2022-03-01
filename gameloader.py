@@ -86,10 +86,13 @@ def load_actors(amulet, floor_yaml, floor_room_map, floor_room_tiles_map):
         jump = sprites.images_at(template['jump'], colorkey=-1)
         p_actor = Actor([up, right, down, left, jump], template['rects'], all_spaces.pop())
         p_actor.name = actor['actor']
+
         if 'isplayer' in actor:
             p_actor.setIsPlayer(actor['isplayer'])
         else:
             p_actor.setIsPlayer(False)
+        
+        p_actor.health = p_actor.max_health = template['health']
 
         for item in actor['inventory']:
             pitem = Item(amulet.weapons[item['item']])

@@ -32,6 +32,8 @@ class Actor(StaticObject):
         self.is_player = False
         self.name = "Actor"
         self.inventory = list()
+        self.max_health = 10
+        self.health = self.max_health
 
     def get_behavior(self):
         for item in self.inventory:
@@ -157,9 +159,24 @@ class Actor(StaticObject):
         dist = distance(pos, player_pos)
         return dist > 3.0 and dist <= 4.0
 
+    def pronoun_subject(self):
+        return 'You attack' if self.is_player else self.name + ' attacks'
+
+    def pronoun_object(self):
+        return 'you' if self.is_player else self.name
+    
+    def wielding(self):
+        for item in self.inventory:
+            name = str(item)
+            if item.is_wielded():
+                return name
+        return "martial arts"
+
     def pathfind(self, player, bad_spaces):
+        "return True if the actor was already in a good spot."
+
         if self.room != player.room or self.moving:
-            return
+            return False
 
         player_pos = player.pos if not player.moving else player.path_end
 
@@ -171,7 +188,7 @@ class Actor(StaticObject):
             if self.good_pos(pos, player_pos, bad_spaces):
                 if len(path):
                     self.move_to(*self.pos, *path[0])
-                return
+                return len(path) == 0
             if pos in closed_nodes:
                 continue
             closed_nodes.add(pos)
@@ -184,3 +201,5 @@ class Actor(StaticObject):
                 if new_pos in bad_spaces:
                     continue
                 heapq.heappush(heap, (dist+1, new_pos, path + [new_pos]))
+
+        return False

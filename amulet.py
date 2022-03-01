@@ -1,29 +1,17 @@
 import pygame
-from pygame.time import Clock
-import sys
-from random import randint, shuffle
 from actor import Actor
-from functools import reduce
 from staticobject import StaticObject
-from gameloader import create_map
 
 class Amulet:
-    def __init__(self):
-        pygame.init()
-        pygame.font.init()
-        self.screen = pygame.display.set_mode((768, 640))
-        self.myfont = pygame.font.SysFont(None, 24)
+    def __init__(self, screen, myfont):
+        self.screen = screen
+        self.myfont = myfont
         self.floors = []
-        self.clock = Clock()
-        self.rotation = 0
         self.animation_event = pygame.USEREVENT + 1
         pygame.time.set_timer(self.animation_event, 250)
         self.movement_event = pygame.USEREVENT + 2
         pygame.time.set_timer(self.movement_event, 1000//120)
         self.actors = []
-        pygame.mixer.init()
-        pygame.mixer.music.load("badkalimba.mp3")
-        pygame.mixer.music.play()
 
         self.new_message(
             "Use the arrow keys to move around. Press P to swap players. Press ESC to quit.")
@@ -125,9 +113,15 @@ class Amulet:
     def objects_in_room(self, room):
         return list(actor for actor in self.actors if isinstance(actor, StaticObject) and actor.room == room)
 
+    def attack(self, attacker, victim):
+        msg = f"{attacker.pronoun_subject()} {victim.pronoun_object()} with {attacker.wielding()}."
+        victim.health -= 1
+        self.new_alert(msg)
+
     def game_loop(self):
         running = True
         playerMoved = False
+        restart = False
 
         while running:
             room = self.get_player_room()
@@ -158,7 +152,8 @@ class Amulet:
                             self.swap_player()
                         elif event.key == pygame.K_F5:
                             self.new_alert("Restarting game...")
-                            create_map(self)
+                            running = False
+                            restart = True
                         elif event.key == pygame.K_PRINTSCREEN:
                             pygame.image.save(self.screen, "screenshot.png")
                             self.new_alert(
@@ -177,7 +172,9 @@ class Amulet:
                         for actor in [a for a in actors if not a.getMoving() and not a.getIsPlayer()]:
                             bad_spaces = set(
                                 (b for a in objects for b in a.i_am_at() if a != actor))
-                            actor.pathfind(player, bad_spaces)
+                            ready_to_attack = actor.pathfind(player, bad_spaces)
+                            if ready_to_attack:
+                                self.attack(actor, player)
                         playerMoved = False
 
             self.screen.fill((0, 0, 0))
@@ -188,6 +185,10 @@ class Amulet:
                                                  self.screen.get_height() - 5 * self.instructions.get_height()))
             
             print_status(self, player)
+
+            if player.health <= 0:
+                self.new_alert("You died.")
+                running = False
 
             # if alert is set, display it for a while
             if self.alert is not None:
@@ -202,23 +203,15 @@ class Amulet:
         pygame.time.set_timer(self.animation_event, 0)
         pygame.time.set_timer(self.movement_event, 0)
 
+        return restart
+
 def print_status(amulet: Amulet, player: Actor):
     lines = list()
-    lines.append(amulet.myfont.render("You are " + player.name, True, (0, 255, 0)))
-    for item in player.inventory:
-        name = str(item)
-        if item.is_wielded():
-            name = "wielding " + name
-        lines.append(amulet.myfont.render(name, True, (0, 255, 0)))
-    top = 5
+    who_am_i = f"You are {player.name}, fighting with {player.wielding()}"
+    lines.append(amulet.myfont.render(who_am_i, True, (0, 255, 0)))
+    top, left = 5, 5
+    status_line = amulet.myfont.render(f"Health: {player.health}/{player.max_health}", True, (0, 255, 0))
+    amulet.screen.blit(status_line, (amulet.screen.get_width() - status_line.get_width() - left, top))
     for line in lines:
-        amulet.screen.blit(line, (0, top))
+        amulet.screen.blit(line, (left, top))
         top += line.get_height()
-
-if __name__ == '__main__':
-    amulet = Amulet()
-    create_map(amulet)
-    amulet.game_loop()
-    print("Thanks for playing!")
-    pygame.quit()
-    sys.exit()
