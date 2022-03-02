@@ -1,5 +1,6 @@
 from spritesheet import SpriteSheet
 
+
 class StaticObject:
     def __init__(self, sprites, rects, pos):
         self.sprites = sprites
@@ -11,7 +12,7 @@ class StaticObject:
 
     def getPos(self):
         return self.pos
-    
+
     def setPos(self, pos):
         self.x, self.y = pos
         self.pos = pos
@@ -23,6 +24,7 @@ class StaticObject:
         return [self.pos]
 
     def draw(self, screen):
+        print (f"This doesn't really get called, does it?")
         screen.blit(self.sprite, self.rect)
 
     def get_real_pos(self):
@@ -43,10 +45,12 @@ class StaticObject:
     def __lt__(self, other):
         return self.get_real_pos() < other.get_real_pos()
 
+
 class Pillar(StaticObject):
     def __init__(self, pos):
-        sprites = SpriteSheet("iso-64x64-outside.png").load_strip((202, 811, 41, 71), 1, colorkey = -1)
+        sprites = SpriteSheet(
+            "iso-64x64-outside.png").load_strip((202, 811, 41, 71), 1, colorkey=-1)
         super().__init__(sprites, None, pos)
         self.sprite = sprites[0]
-        self.rect = (0,0,41,71)
+        self.rect = (0, 0, 41, 71)
         self.room = None

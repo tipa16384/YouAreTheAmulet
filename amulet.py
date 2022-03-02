@@ -2,6 +2,7 @@ import pygame
 from actor import Actor
 from staticobject import StaticObject
 
+
 class Amulet:
     def __init__(self, screen, myfont):
         self.screen = screen
@@ -12,6 +13,7 @@ class Amulet:
         self.movement_event = pygame.USEREVENT + 2
         pygame.time.set_timer(self.movement_event, 1000//120)
         self.actors = []
+        self.end_game_event = pygame.USEREVENT + 3
 
         self.new_message(
             "Use the arrow keys to move around. Press P to swap players. Press ESC to quit.")
@@ -117,11 +119,18 @@ class Amulet:
         msg = f"{attacker.pronoun_subject()} {victim.pronoun_object()} with {attacker.wielding()}."
         victim.health -= 1
         self.new_alert(msg)
+    
+    def kill_non_player(self, actors: list):
+        for actor in actors:
+            if not actor.getIsPlayer():
+                actor.kill()
+                self.new_alert(f"{actor.name} is dead.")
 
     def game_loop(self):
         running = True
         playerMoved = False
         restart = False
+        waiting_for_godot = False
 
         while running:
             room = self.get_player_room()
@@ -140,16 +149,24 @@ class Amulet:
                             running = False
                             break
                         elif event.key == pygame.K_LEFT:
-                            self.rotate_player(-1)
+                            if player.alive:
+                                self.rotate_player(-1)
                         elif event.key == pygame.K_RIGHT:
-                            self.rotate_player(1)
+                            if player.alive:
+                                self.rotate_player(1)
                         elif event.key == pygame.K_UP:
-                            self.move_player(True)
-                            playerMoved = True
+                            if player.alive:
+                                self.move_player(True)
+                                playerMoved = True
                         elif event.key == pygame.K_DOWN:
-                            self.rotate_player(2)
+                            if player.alive:
+                                self.rotate_player(2)
                         elif event.key == pygame.K_p:
-                            self.swap_player()
+                            if player.alive:
+                                self.swap_player()
+                        elif event.key == pygame.K_k:
+                            if player.alive:
+                                self.kill_non_player(actors)
                         elif event.key == pygame.K_F5:
                             self.new_alert("Restarting game...")
                             running = False
@@ -160,19 +177,22 @@ class Amulet:
                                 "Screenshot saved to screenshot.png")
                     except AttributeError:
                         pass
+                elif event.type == self.end_game_event:
+                    running = False
                 elif event.type == self.animation_event:
-                    for actor in (a for a in actors if a.room == room):
+                    for actor in (a for a in actors if a.room == room and a.alive):
                         actor.animate()
                         if actor != player:
                             actor.face_player(player.x, player.y)
                 elif event.type == self.movement_event:
-                    for actor in [a for a in actors if a.getMoving()]:
+                    for actor in [a for a in actors if a.getMoving() and a.alive]:
                         actor.update()
                     if playerMoved:
-                        for actor in [a for a in actors if not a.getMoving() and not a.getIsPlayer()]:
+                        for actor in [a for a in actors if not a.getMoving() and not a.getIsPlayer() and a.alive]:
                             bad_spaces = set(
                                 (b for a in objects for b in a.i_am_at() if a != actor))
-                            ready_to_attack = actor.pathfind(player, bad_spaces)
+                            ready_to_attack = actor.pathfind(
+                                player, bad_spaces)
                             if ready_to_attack:
                                 self.attack(actor, player)
                         playerMoved = False
@@ -183,12 +203,14 @@ class Amulet:
 
             self.screen.blit(self.instructions, ((self.screen.get_width() - self.instructions.get_width())//2,
                                                  self.screen.get_height() - 5 * self.instructions.get_height()))
-            
+
             print_status(self, player)
 
-            if player.health <= 0:
+            if not waiting_for_godot and player.health <= 0:
+                player.kill()
                 self.new_alert("You died.")
-                running = False
+                pygame.time.set_timer(self.end_game_event, 5000)
+                waiting_for_godot = True
 
             # if alert is set, display it for a while
             if self.alert is not None:
@@ -203,15 +225,18 @@ class Amulet:
         pygame.time.set_timer(self.animation_event, 0)
         pygame.time.set_timer(self.movement_event, 0)
 
-        return restart
+        return restart, waiting_for_godot
+
 
 def print_status(amulet: Amulet, player: Actor):
     lines = list()
     who_am_i = f"You are {player.name}, fighting with {player.wielding()}"
     lines.append(amulet.myfont.render(who_am_i, True, (0, 255, 0)))
     top, left = 5, 5
-    status_line = amulet.myfont.render(f"Health: {player.health}/{player.max_health}", True, (0, 255, 0))
-    amulet.screen.blit(status_line, (amulet.screen.get_width() - status_line.get_width() - left, top))
+    status_line = amulet.myfont.render(
+        f"Health: {player.health}/{player.max_health}", True, (0, 255, 0))
+    amulet.screen.blit(
+        status_line, (amulet.screen.get_width() - status_line.get_width() - left, top))
     for line in lines:
         amulet.screen.blit(line, (left, top))
         top += line.get_height()

@@ -1,4 +1,25 @@
-weapons:
+intro:
+  intro_file_pic: intropic.png
+  intro_text: |-
+    A Game You Cannot Win
+    A Game You Cannot Lose
+    A Game You Cannot Forget
+    A Game You Will Not Remember
+  press_escape_to_continue: Press ESC to continue
+  title_banner: 7DRL Tactics Roguelike Engine Advance
+  scroll_speed: 2000
+outro:
+  intro_file_pic: deathscreen.jpg
+  intro_text: |-
+    It all seems unfair, doesn't it?
+    Dying, and you couldn't even fight back
+    Maybe you ran
+    Maybe you pressed 'K' a few times
+    But in the end, you ended up here.
+  press_escape_to_continue: Press ESC to continue
+  title_banner: You Died
+  scroll_speed: 2000
+items:
 - item: &firewand wand of fire
   itemType: WAND
   behavior: MAGIC
@@ -22,6 +43,10 @@ library:
   east: [[12, 106, 32, 48], [54, 106, 32, 48], [96, 106, 32, 48], [138, 106, 32, 48]]
   south: [[12, 170, 32, 48], [54, 170, 32, 48], [96, 170, 32, 48], [138, 170, 32, 48]]
   north: [[12, 234, 32, 48], [54, 234, 32, 48], [96, 234, 32, 48], [138, 234, 32, 48]]
+  dead_west: [100, 684, 32, 38]
+  dead_east: [238, 684, 32, 40]
+  dead_south: [100, 752, 32, 38]
+  dead_north: [238, 752, 32, 40]
   jump: [[208, 192, 32, 60], [250, 192, 32, 60],
                     [292, 192, 32, 60], [334, 192, 32, 60],
                     [376, 192, 32, 60], [418, 192, 32, 60]]
@@ -33,6 +58,8 @@ library:
   spritesheet: archer.png
   west: [[214, 18, 32, 60], [248, 18, 32, 60], [214, 18, 32, 60], [180, 18, 32, 60]]
   north: [[212, 84, 32, 60], [248, 82, 32, 60], [212, 84, 32, 60], [178, 84, 32, 60]]
+  dead_west: [182, 434, 32, 44]
+  dead_north: [184, 492, 32, 42]
   jump: [[184, 286, 32, 62], [218, 286, 32, 62],
                       [252, 286, 32, 62], [218, 286, 32, 62],
                       [184, 286, 32, 62]]
@@ -46,6 +73,7 @@ library:
   east: [[12, 98, 32, 56], [54, 98, 32, 56], [96, 98, 32, 56], [138, 98, 32, 56]]
   south: [[12, 162, 32, 56], [54, 162, 32, 56], [96, 162, 32, 56], [138, 162, 32, 56]]
   north: [[12, 226, 32, 56], [54, 226, 32, 56], [96, 226, 32, 56], [138, 226, 32, 56]]
+  dead_west: [621, 394, 33, 40]
   jump: [[478, 186, 34, 66], [520, 186, 34, 66],
                         [559, 186, 34, 66], [520, 186, 34, 66], [478, 186, 34, 66]]
   rects: [[0, 0, 32, 56], [0, 0, 32, 56], [0, 0, 32, 56], [0, 0, 32, 56], [0, 0, 34, 66]]
@@ -57,6 +85,8 @@ library:
                     [198, 152, 32, 58], [156, 152, 32, 58]]
   north: [[198, 56, 32, 58], [238, 56, 32, 58],
                     [198, 56, 32, 58], [158, 56, 32, 58]]
+  dead_west: [542, 168, 32, 42]
+  dead_north: [542, 74, 32, 40]
   jump: [[1044, 142, 32, 68], [1084, 142, 32, 68],
                     [1124, 142, 32, 68], [1084, 142, 32, 68],
                     [1044, 142, 32, 68]]

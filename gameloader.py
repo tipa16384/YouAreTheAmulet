@@ -25,7 +25,7 @@ def create_map(amulet):
     amulet.library = library_map
 
     weapon_map = dict()
-    for weapon in game_yaml['weapons']:
+    for weapon in game_yaml['items']:
         weapon_map[weapon['item']] = weapon
     amulet.weapons = weapon_map
 
@@ -86,6 +86,24 @@ def load_actors(amulet, floor_yaml, floor_room_map, floor_room_tiles_map):
         jump = sprites.images_at(template['jump'], colorkey=-1)
         p_actor = Actor([up, right, down, left, jump], template['rects'], all_spaces.pop())
         p_actor.name = actor['actor']
+
+        left = sprites.image_at(template['dead_west'], colorkey=-1)
+        if 'dead_south' in template:
+            down = sprites.image_at(template['dead_south'], colorkey=-1)
+        else:
+            down = pygame.transform.flip(left, True, False)
+
+        if 'dead_north' in template:
+            up = sprites.image_at(template['dead_north'], colorkey=-1)
+        else:
+            up = pygame.transform.flip(left, False, True)
+
+        if 'dead_east' in template:
+            right = sprites.image_at(template['dead_east'], colorkey=-1)
+        else:
+            right = pygame.transform.flip(up, True, False)
+        
+        p_actor.dead_sprites = [up, right, down, left]
 
         if 'isplayer' in actor:
             p_actor.setIsPlayer(actor['isplayer'])

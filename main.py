@@ -3,7 +3,7 @@ from gameloader import create_map
 import pygame
 import sys
 from intro import Intro
-
+from outro import Outro
 
 def init_screen():
     pygame.init()
@@ -11,7 +11,7 @@ def init_screen():
     screen = pygame.display.set_mode((768, 640))
     myfont = pygame.font.SysFont(None, 24)
     pygame.mixer.init()
-    pygame.mixer.music.load("badkalimba.mp3")
+    pygame.mixer.music.load("epic-heart-2-min-8643.mp3")
     pygame.mixer.music.play()
 
     return screen, myfont
@@ -26,8 +26,13 @@ if __name__ == '__main__':
     while True:
         amulet = Amulet(screen, myfont)
         create_map(amulet)
-        if not amulet.game_loop():
+        restart, player_died = amulet.game_loop()
+        if not restart:
             break
+
+    if player_died:
+        outro = Outro(screen, myfont)
+        outro.game_loop()
 
     print("Thanks for playing!")
     pygame.quit()

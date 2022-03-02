@@ -3,7 +3,8 @@ from staticobject import StaticObject
 from math import sqrt, pow
 from enum import Enum
 
-__facing_deltas__ = [(0,-1), (1,0), (0,1), (-1,0)]
+__facing_deltas__ = [(0, -1), (1, 0), (0, 1), (-1, 0)]
+
 
 class Behavior(Enum):
     MAGIC = 0
@@ -11,11 +12,14 @@ class Behavior(Enum):
     MELEE = 2
     CHARGE = 3
 
+
 def manhattan_distance(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
+
 def distance(a, b):
     return sqrt(pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2))
+
 
 class Actor(StaticObject):
     def __init__(self, sprites, rects, pos, facing=3):
@@ -34,6 +38,8 @@ class Actor(StaticObject):
         self.inventory = list()
         self.max_health = 10
         self.health = self.max_health
+        self.alive = True
+        self.dead_sprites = list()
 
     def get_behavior(self):
         for item in self.inventory:
@@ -49,13 +55,13 @@ class Actor(StaticObject):
 
     def setIsPlayer(self, is_player):
         self.is_player = is_player
-    
+
     def getIsPlayer(self):
         return self.is_player
 
     def setFacing(self, facing):
         self.facing = facing
-    
+
     def face_player(self, px, py):
         if not self.moving:
             self.face_at(px, py)
@@ -83,10 +89,16 @@ class Actor(StaticObject):
         return self.facing % 4
 
     def get_rect(self):
-        return self.rects[self.getRotatedFacing()]
+        if self.alive:
+            return self.rects[self.getRotatedFacing()]
+        else:
+            drect = self.dead_sprites[self.getRotatedFacing()].get_rect()
+            return (0, 0, drect[2], drect[3])
 
     def get_sprite(self):
-        if not self.animated:
+        if not self.alive:
+            return self.dead_sprites[self.getRotatedFacing()]
+        elif not self.animated:
             return self.sprites[self.getRotatedFacing()]
         else:
             return self.sprites[self.getRotatedFacing()][self.frame % len(self.sprites[self.getRotatedFacing()])]
@@ -96,6 +108,10 @@ class Actor(StaticObject):
             return [self.path_end, self.path_start]
         else:
             return [self.pos]
+    
+    def kill(self):
+        self.alive = False
+        self.health = 0
 
     def update(self):
         if self.moving:
@@ -134,7 +150,7 @@ class Actor(StaticObject):
         dist = manhattan_distance(from_pos, to_pos)
         if dist == 0:
             return True
-        
+
         for i in range(dist):
             x = int(from_pos[0] + (to_pos[0] - from_pos[0])/dist * i)
             y = int(from_pos[1] + (to_pos[1] - from_pos[1])/dist * i)
@@ -142,7 +158,7 @@ class Actor(StaticObject):
                 return False
 
         return True
-        
+
     def good_pos(self, pos, player_pos, bad_spaces):
         behavior = self.get_behavior()
         if behavior == Behavior.MAGIC:
@@ -164,7 +180,7 @@ class Actor(StaticObject):
 
     def pronoun_object(self):
         return 'you' if self.is_player else self.name
-    
+
     def wielding(self):
         for item in self.inventory:
             name = str(item)
