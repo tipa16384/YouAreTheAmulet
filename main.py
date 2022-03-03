@@ -4,6 +4,7 @@ import pygame
 import sys
 from intro import Intro
 from outro import Outro
+from wintro import Wintro
 
 def init_screen():
     pygame.init()
@@ -33,6 +34,9 @@ if __name__ == '__main__':
     if player_died:
         outro = Outro(screen, myfont)
         outro.game_loop()
+    else:
+        wintro = Wintro(screen, myfont)
+        wintro.game_loop()
 
     print("Thanks for playing!")
     pygame.quit()

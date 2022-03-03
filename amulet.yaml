@@ -19,6 +19,16 @@ outro:
   press_escape_to_continue: Press ESC to continue
   title_banner: You Died
   scroll_speed: 2000
+wintro:
+  intro_file_pic: winner.png
+  intro_text: |-
+    Alles ist tot
+    Aber, du lebst
+    Wir sehen dir nach 7DRL wieder.
+    Auf Wiedersehen, Space Cowboy.
+  press_escape_to_continue: Drück ESC zum Beenden
+  title_banner: Gewinner nehmen nie Drogen
+  scroll_speed: 2000
 items:
 - item: &firewand wand of fire
   itemType: WAND

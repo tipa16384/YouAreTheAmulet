@@ -1,6 +1,7 @@
 import pygame
 from actor import Actor
 from staticobject import StaticObject
+from functools import reduce
 
 
 class Amulet:
@@ -110,7 +111,7 @@ class Amulet:
         self.alert_time = pygame.time.get_ticks()
 
     def actors_in_room(self, room):
-        return list(actor for actor in self.actors if isinstance(actor, Actor) and actor.room == room)
+        return list(actor for actor in self.actors if isinstance(actor, Actor) and actor.room == room and actor.alive)
 
     def objects_in_room(self, room):
         return list(actor for actor in self.actors if isinstance(actor, StaticObject) and actor.room == room)
@@ -119,12 +120,15 @@ class Amulet:
         msg = f"{attacker.pronoun_subject()} {victim.pronoun_object()} with {attacker.wielding()}."
         victim.health -= 1
         self.new_alert(msg)
-    
+
     def kill_non_player(self, actors: list):
         for actor in actors:
             if not actor.getIsPlayer():
                 actor.kill()
                 self.new_alert(f"{actor.name} is dead.")
+
+    def any_npcs_alive(self):
+        return reduce(lambda x, y: x or y, [a.alive for a in self.actors if isinstance(a, Actor) and not a.getIsPlayer()])
 
     def game_loop(self):
         running = True
@@ -212,6 +216,11 @@ class Amulet:
                 pygame.time.set_timer(self.end_game_event, 5000)
                 waiting_for_godot = True
 
+            if not waiting_for_godot and player.alive and not self.any_npcs_alive():
+                self.new_alert("You killed everything!")
+                pygame.time.set_timer(self.end_game_event, 5000)
+                waiting_for_godot = True
+
             # if alert is set, display it for a while
             if self.alert is not None:
                 if pygame.time.get_ticks() - self.alert_time > 5000:
@@ -225,7 +234,7 @@ class Amulet:
         pygame.time.set_timer(self.animation_event, 0)
         pygame.time.set_timer(self.movement_event, 0)
 
-        return restart, waiting_for_godot
+        return restart, self.any_npcs_alive()
 
 
 def print_status(amulet: Amulet, player: Actor):
