@@ -44,6 +44,29 @@ def create_map(amulet):
             floor_room_map[froom.name] = froom
             all_spaces = [(x, y) for x in range(froom.width)
                     for y in range(froom.height)]
+            froom.bad_spaces = set()
+            froom.good_spaces = set(all_spaces)
+            froom.tiled = None
+
+            if 'tiled' in room:
+                froom.tiled = room['tiled']
+                froom.room_sprites = SpriteSheet(froom.tiled['spritesheet'])
+                with open(froom.tiled['tiles'], "r") as stream:
+                    tiled_room = json.load(stream)
+                froom.height = tiled_room['height']
+                froom.width = tiled_room['width']
+                froom.layers = tiled_room['layers']
+                for layer_no, layer in enumerate(tiled_room['layers']):
+                    print (f"Len of layer {layer_no} is {len(layer['data'])}")
+                    if layer_no == 0:
+                        froom.good_spaces = set((x, y) for y in range(froom.height) for x in range(froom.width) if layer['data'][(froom.width - 1 - x) * froom.height + y] != 0)
+                    elif layer_no == 1:
+                        froom.bad_spaces = set((x-1, y+1) for y in range(froom.height) for x in range(froom.width) if layer['data'][(froom.width - 1 - x) * froom.height + y] != 0)
+
+                all_spaces = list(froom.good_spaces - froom.bad_spaces)
+                froom.good_spaces = set(all_spaces)
+                print (f"Tiled room {froom.name} has {len(all_spaces)} spaces")
+
             shuffle(all_spaces)
             floor_room_tiles_map[froom.name] = all_spaces
         
@@ -58,8 +81,6 @@ def create_map(amulet):
         all_spaces = floor_room_tiles_map['Entry Room']
 
         load_actors(amulet, floor_yaml, floor_room_map, floor_room_tiles_map)
-        for _ in range(4):
-            amulet.actors.append(Pillar(all_spaces.pop()))
         for actor in amulet.actors:
             if actor.room is None:
                 actor.room = room

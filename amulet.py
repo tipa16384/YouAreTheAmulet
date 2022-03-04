@@ -54,7 +54,7 @@ class Amulet:
             return False
         if x >= room.width or y >= room.height:
             return False
-        return True
+        return (x, y) in room.good_spaces
 
     def leave(self, nx, ny):
         player = self.get_player()
@@ -195,6 +195,7 @@ class Amulet:
                         for actor in [a for a in actors if not a.getMoving() and not a.getIsPlayer() and a.alive]:
                             bad_spaces = set(
                                 (b for a in objects for b in a.i_am_at() if a != actor))
+                            bad_spaces = room.bad_spaces | bad_spaces
                             ready_to_attack = actor.pathfind(
                                 player, bad_spaces)
                             if ready_to_attack:

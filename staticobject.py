@@ -37,7 +37,7 @@ class StaticObject:
             return False
         if x >= self.room.width or y >= self.room.height:
             return False
-        return True
+        return (x, y) in self.room.good_spaces
 
     def get_rect(self):
         return self.rect

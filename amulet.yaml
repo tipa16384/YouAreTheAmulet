@@ -107,6 +107,15 @@ floors:
   - floor: Test Floor
     rooms:
     - room: &rm0101 Entry Room
+      tiled:
+        tiles: room0101.tmj
+        spritesheet: iso-64x64-outside.png
+        tilewidth: 64
+        tileheight: 64
+        displayheight: 32
+        tilecount: 160
+        columns: 10
+        firstgid: 1
       width: 10
       height: 10
       tileType: OUTSIDE
@@ -141,11 +150,11 @@ floors:
         - item: *firewand
       - actor: *archer
         isplayer: False
-        room: *rm0103
+        room: *rm0101
         inventory:
         - item: *longbow
       - actor: *templar
-        room: *rm0101
+        room: *rm0103
         inventory:
         - item: *broadsword
       - actor: *mogknight
