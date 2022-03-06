@@ -2,12 +2,13 @@ import pygame
 from actor import Actor
 from staticobject import StaticObject
 from functools import reduce
-
+from layout import Layout, TextColor
 
 class Amulet:
-    def __init__(self, screen, myfont):
-        self.screen = screen
-        self.myfont = myfont
+    def __init__(self, layout: Layout):
+        self.layout = layout
+        self.screen = layout.game_screen
+        self.myfont = layout.font
         self.floors = []
         self.animation_event = pygame.USEREVENT + 1
         pygame.time.set_timer(self.animation_event, 250)
@@ -104,11 +105,10 @@ class Amulet:
         self.new_alert(f"You are now {new_player.name}")
 
     def new_message(self, message):
-        self.instructions = self.myfont.render(message, True, (255, 255, 255))
+        self.layout.add_message(message, TextColor.BRIGHT)
 
     def new_alert(self, message):
-        self.alert = self.myfont.render(message, True, (255, 255, 0))
-        self.alert_time = pygame.time.get_ticks()
+        self.layout.add_message(message)
 
     def actors_in_room(self, room):
         return list(actor for actor in self.actors if isinstance(actor, Actor) and actor.room == room and actor.alive)
@@ -176,9 +176,8 @@ class Amulet:
                             running = False
                             restart = True
                         elif event.key == pygame.K_PRINTSCREEN:
-                            pygame.image.save(self.screen, "screenshot.png")
-                            self.new_alert(
-                                "Screenshot saved to screenshot.png")
+                            pygame.image.save(self.layout.screen, "screenshot.png")
+                            self.layout.add_message("Screenshot saved to screenshot.png", TextColor.COOL)
                     except AttributeError:
                         pass
                 elif event.type == self.end_game_event:
@@ -202,51 +201,25 @@ class Amulet:
                                 self.attack(actor, player)
                         playerMoved = False
 
-            self.screen.fill((0, 0, 0))
-
-            room.draw(self.screen, objects, self.get_floors()[0].exits)
-
-            self.screen.blit(self.instructions, ((self.screen.get_width() - self.instructions.get_width())//2,
-                                                 self.screen.get_height() - 5 * self.instructions.get_height()))
-
-            print_status(self, player)
-
             if not waiting_for_godot and player.health <= 0:
                 player.kill()
-                self.new_alert("You died.")
+                self.new_message("You died.")
                 pygame.time.set_timer(self.end_game_event, 5000)
                 waiting_for_godot = True
 
             if not waiting_for_godot and player.alive and not self.any_npcs_alive():
-                self.new_alert("You killed everything!")
+                self.new_message("You killed everything!")
                 pygame.time.set_timer(self.end_game_event, 5000)
                 waiting_for_godot = True
 
-            # if alert is set, display it for a while
-            if self.alert is not None:
-                if pygame.time.get_ticks() - self.alert_time > 5000:
-                    self.alert = None
-                else:
-                    self.screen.blit(self.alert, ((self.screen.get_width() - self.alert.get_width())//2,
-                                                  self.screen.get_height() - 4 * self.alert.get_height()))
-
-            pygame.display.flip()
+            self.layout.draw(self)
 
         pygame.time.set_timer(self.animation_event, 0)
         pygame.time.set_timer(self.movement_event, 0)
 
         return restart, self.any_npcs_alive()
 
-
-def print_status(amulet: Amulet, player: Actor):
-    lines = list()
-    who_am_i = f"You are {player.name}, fighting with {player.wielding()}"
-    lines.append(amulet.myfont.render(who_am_i, True, (0, 255, 0)))
-    top, left = 5, 5
-    status_line = amulet.myfont.render(
-        f"Health: {player.health}/{player.max_health}", True, (0, 255, 0))
-    amulet.screen.blit(
-        status_line, (amulet.screen.get_width() - status_line.get_width() - left, top))
-    for line in lines:
-        amulet.screen.blit(line, (left, top))
-        top += line.get_height()
+    def draw(self):
+        room = self.get_player_room()
+        objects = self.objects_in_room(room)
+        room.draw(self.screen, objects, self.get_floors()[0].exits)

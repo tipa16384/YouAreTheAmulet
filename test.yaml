@@ -1,21 +1,12 @@
-layout:
-  screen_width: 1024
-  screen_height: 768
-  logo: [0, 0, 244, 100]
-  logo_pic: gamelogo.png
-  stats: [0, 100, 244, 668]
-  game: [244, 0, 780, 586]
-  messages: [244, 586, 780, 182]
-  num_messages: 9
-  bg_color: "#3b3938"
-  bright_color: "#fedf01"
-  text_color: "#e1e4e1"
-  cool_color: "#2ba7bf"
 intro:
-  intro_file_pic: amuletintro.png
-  intro_text: 
+  intro_file_pic: intropic.png
+  intro_text: |-
+    A Game You Cannot Win
+    A Game You Cannot Lose
+    A Game You Cannot Forget
+    A Game You Will Not Remember
   press_escape_to_continue: Press ESC to continue
-  title_banner: 
+  title_banner: 7DRL Tactics Roguelike Engine Advance
   scroll_speed: 2000
 outro:
   intro_file_pic: deathscreen.jpg

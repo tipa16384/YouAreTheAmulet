@@ -12,7 +12,10 @@ class Intro:
         self.titleFont = pygame.font.SysFont(None, 48)
         self.continue_text = self.myfont.render(intro_data['press_escape_to_continue'], True, (255, 255, 255))
         self.title_text = self.titleFont.render(intro_data['title_banner'], True, (255, 255, 255))
-        self.intro_lines = [self.myfont.render(line, True, (255, 255, 0)) for line in intro_data['intro_text'].split("\n")]
+        if intro_data['intro_text']:
+            self.intro_lines = [self.myfont.render(line, True, (255, 255, 0)) for line in intro_data['intro_text'].split("\n")]
+        else:
+            self.intro_lines = []
         self.scroll_speed = intro_data['scroll_speed']
     
     def game_loop(self):

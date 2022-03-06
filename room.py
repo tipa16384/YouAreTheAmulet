@@ -49,7 +49,6 @@ class Room:
                 rx = (index % self.tiled['columns']) * self.tiled['tilewidth']
                 ry = (index // self.tiled['columns']) * self.tiled['tileheight']
                 self.floor_tile_cache[sprite_num] = self.room_sprites.image_at((rx, ry, self.tiled['tilewidth'], self.tiled['tileheight']), colorkey=-1)
-                print (f"Cached {sprite_num}")
 
         screen_width, screen_height = surface.get_size()
         maxx, maxy = self.screen_coords(self.width, self.height)

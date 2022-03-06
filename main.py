@@ -5,37 +5,32 @@ import sys
 from intro import Intro
 from outro import Outro
 from wintro import Wintro
+from layout import Layout
 
-def init_screen():
-    pygame.init()
-    pygame.font.init()
-    screen = pygame.display.set_mode((768, 640))
-    myfont = pygame.font.SysFont(None, 24)
+def init_screen(layout: Layout):
     pygame.mixer.init()
     pygame.mixer.music.load("epic-heart-2-min-8643.mp3")
     pygame.mixer.music.play()
 
-    return screen, myfont
-
-
 if __name__ == '__main__':
-    screen, myfont = init_screen()
+    layout = Layout()
+    init_screen(layout)
 
-    intro = Intro(screen, myfont)
+    intro = Intro(layout.screen, layout.font)
     intro.game_loop()
 
     while True:
-        amulet = Amulet(screen, myfont)
+        amulet = Amulet(layout)
         create_map(amulet)
         restart, player_died = amulet.game_loop()
         if not restart:
             break
 
     if player_died:
-        outro = Outro(screen, myfont)
+        outro = Outro(layout.screen, layout.font)
         outro.game_loop()
     else:
-        wintro = Wintro(screen, myfont)
+        wintro = Wintro(layout.screen, layout.font)
         wintro.game_loop()
 
     print("Thanks for playing!")

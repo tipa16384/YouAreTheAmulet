@@ -57,7 +57,6 @@ def create_map(amulet):
                 froom.width = tiled_room['width']
                 froom.layers = tiled_room['layers']
                 for layer_no, layer in enumerate(tiled_room['layers']):
-                    print (f"Len of layer {layer_no} is {len(layer['data'])}")
                     if layer_no == 0:
                         froom.good_spaces = set((x, y) for y in range(froom.height) for x in range(froom.width) if layer['data'][(froom.width - 1 - x) * froom.height + y] != 0)
                     elif layer_no == 1:
@@ -65,7 +64,6 @@ def create_map(amulet):
 
                 all_spaces = list(froom.good_spaces - froom.bad_spaces)
                 froom.good_spaces = set(all_spaces)
-                print (f"Tiled room {froom.name} has {len(all_spaces)} spaces")
 
             shuffle(all_spaces)
             floor_room_tiles_map[froom.name] = all_spaces
