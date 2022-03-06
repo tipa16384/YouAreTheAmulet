@@ -219,3 +219,4 @@ class Actor(StaticObject):
                 heapq.heappush(heap, (dist+1, new_pos, path + [new_pos]))
 
         return False
+

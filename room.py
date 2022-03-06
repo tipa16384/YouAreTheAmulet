@@ -1,6 +1,8 @@
 import random
 from terraintile import TileType, TerrainTileFactory
 from spritesheet import SpriteSheet
+from staticobject import HasPosition, StaticObject
+from actor import Actor
 
 class TileObject(object):
     pass
@@ -32,7 +34,7 @@ class Room:
             return self.width - x - 1, self.height - y - 1
         elif rotation == 3:
             return y, self.width - x - 1
-        
+
     def draw_tiled(self, surface, actors, exits):
         self.floor_tile = TileObject()
         self.floor_tile.width = self.tiled['tilewidth']
@@ -91,22 +93,30 @@ class Room:
 
         layer = self.layers[1]['data'] if len(self.layers) > 1 else None
 
-        sorted_actors = sorted(actors)
+        draw_list = []
+        draw_list += actors
 
-        for x in range(self.width-1, -1, -1):
-            for y in range(self.height):
-                if layer:
-                    sprite_num = layer[(self.width - 1 - x) * self.height + y]
-                    if sprite_num != 0:
-                        bx, by = self.screen_coords(x, y)
-                        surface.blit(self.floor_tile_cache[sprite_num], (bx+dx, by+dy))
-                for actor in sorted_actors:
-                    if actor.x >= x and actor.x < x + 1 and actor.y >= y and actor.y < y + 1:
-                        sx, sy = self.screen_coords(actor.x, actor.y)
-                        sprite = actor.get_sprite()
-                        rects = actor.get_rect()
-                        surface.blit(
-                            sprite, (sx + dx + (ssize-rects[2])//2, sy + dy - rects[3]+ssize//3))
+        if layer:
+            for x in range(self.width-1, -1, -1):
+                for y in range(self.height):
+                        sprite_num = layer[(self.width - 1 - x) * self.height + y]
+                        if sprite_num != 0:
+                            hp = HasPosition((x-1, y+1))
+                            hp.image = self.floor_tile_cache[sprite_num]
+                            draw_list.append(hp)
+
+        sorted_actors = sorted(draw_list)
+
+        for actor in sorted_actors:
+            if isinstance(actor, StaticObject):
+                sx, sy = self.screen_coords(actor.x, actor.y)
+                sprite = actor.get_sprite()
+                rects = actor.get_rect()
+                surface.blit(
+                    sprite, (sx + dx + (ssize-rects[2])//2, sy + dy - rects[3]+ssize//3))
+            else:
+                bx, by = self.screen_coords(actor.x+1, actor.y-1)
+                surface.blit(actor.image, (bx+dx, by+dy))
 
         for exit in exits_to_draw:
             if exit[2] == self.height:
@@ -184,3 +194,4 @@ class Room:
                 surface.blit(self.floor_tile.choose_random_image(), (bx+dx, by+dy))
                 bx, by = self.screen_coords(0.4, ey-0.5)
                 surface.blit(self.exit_ew, (bx+dx, by+dy))
+

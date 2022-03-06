@@ -4,7 +4,7 @@ from room import Room
 from exit import Exit
 from random import shuffle
 from actor import Behavior, Actor
-from staticobject import Pillar
+from staticobject import StaticObject
 from terraintile import TileType
 import pygame
 from spritesheet import SpriteSheet
@@ -53,8 +53,8 @@ def create_map(amulet):
                 froom.room_sprites = SpriteSheet(froom.tiled['spritesheet'])
                 with open(froom.tiled['tiles'], "r") as stream:
                     tiled_room = json.load(stream)
-                froom.height = tiled_room['height']
-                froom.width = tiled_room['width']
+                froom.height = tiled_room['width']
+                froom.width = tiled_room['height']
                 froom.layers = tiled_room['layers']
                 for layer_no, layer in enumerate(tiled_room['layers']):
                     if layer_no == 0:
@@ -79,9 +79,28 @@ def create_map(amulet):
         all_spaces = floor_room_tiles_map['Entry Room']
 
         load_actors(amulet, floor_yaml, floor_room_map, floor_room_tiles_map)
+        load_items(amulet, floor_yaml, floor_room_map)
+
         for actor in amulet.actors:
             if actor.room is None:
                 actor.room = room
+
+def load_items(amulet, floor_yaml, floor_room_map):
+    for item in floor_yaml['items']:
+        room_name = item['room'] if 'room' in item else 'Entry Room'
+        template = amulet.library[item['item']]
+        sprite_rect = template['sprite']
+        sprites = SpriteSheet(template['spritesheet']).load_strip(sprite_rect, 1, colorkey=-1)
+        pos = item['position']
+        p_item = StaticObject(sprites, None, pos)
+        p_item.sprite = sprites[0]
+        p_item.rect = (0, 0, sprite_rect[2] - sprite_rect[0], sprite_rect[3] - sprite_rect[1])
+        p_item.room = floor_room_map[room_name]
+        p_item.phrases = item['phrases'].split('\n') if 'phrases' in item else None
+        p_item.ontop = item['ontop'] if 'ontop' in item else None
+        p_item.name = item['item']
+
+        amulet.actors.append(p_item)
 
 def load_actors(amulet, floor_yaml, floor_room_map, floor_room_tiles_map):
     for actor in floor_yaml['actors']:
@@ -141,4 +160,6 @@ def load_actors(amulet, floor_yaml, floor_room_map, floor_room_tiles_map):
             wieldable_items[0].wield()
 
         p_actor.room = floor_room_map[room_name]
+        p_actor.phrases = actor['phrases'] if 'phrases' in actor else None
+        p_actor.ontop = actor['ontop'] if 'ontop' in actor else None
         amulet.actors.append(p_actor)

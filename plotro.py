@@ -5,9 +5,9 @@ from amulet import ExitState
 json_fn = 'amulet.dat'
 
 
-class Outro:
+class Plotro:
     def __init__(self, screen, myfont):
-        intro_data = json.load(open(json_fn))['outro']
+        intro_data = json.load(open(json_fn))['plotro']
         self.screen = screen
         self.myfont = myfont
         self.intro_pic = pygame.image.load(intro_data['intro_file_pic'])
@@ -44,7 +44,7 @@ class Outro:
 
             self.screen.fill((0, 0, 0))
             self.screen.blit(self.intro_pic, ((self.screen.get_width(
-            ) - self.intro_pic.get_height())/2, (self.screen.get_height() - self.intro_pic.get_height())/2))
+            ) - self.intro_pic.get_width())/2, (self.screen.get_height() - self.intro_pic.get_height())/2))
 
             start_y = self.screen.get_height()/2 - (len(self.intro_lines) * line_height)/2
 

@@ -36,6 +36,8 @@ class Intro:
                     elif event.key == pygame.K_RETURN:
                         running = False
                         break
+                    elif event.key == pygame.K_PRINTSCREEN:
+                        pygame.image.save(self.screen, "yata-intro-screenshot.png")
 
             self.screen.fill((0, 0, 0))
             self.screen.blit(self.intro_pic, (0, 0))

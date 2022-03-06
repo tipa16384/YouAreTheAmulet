@@ -56,9 +56,15 @@ class Layout:
         player = amulet.get_player()
         lines = list()
         lines.append((TextColor.BRIGHT, f"You are {player.name}"))
-        lines.append((TextColor.NORMAL, player.wielding()))
         lines.append((TextColor.NORMAL, ""))
         lines.append((TextColor.NORMAL, f"Health: {player.health}/{player.max_health}"))
+        lines.append((TextColor.NORMAL, ""))
+        lines.append((TextColor.COOL, "Inventory"))
+        lines.append((TextColor.NORMAL, ""))
+
+        for index, item in enumerate(player.inventory):
+            lines.append((TextColor.NORMAL, chr(ord('a')+index) + ") " + str(item)))
+
         self.draw_lines(self.stats_rect, lines, True)
     
     def draw_messages(self):

@@ -26,7 +26,19 @@ outro:
     Maybe you pressed 'K' a few times
     But in the end, you ended up here.
   press_escape_to_continue: Press ESC to continue
-  title_banner: You Died
+  title_banner: 
+  scroll_speed: 2000
+plotro:
+  intro_file_pic: plotropic.jpg
+  intro_text: |-
+    Now you are mine. By my magic, we enter my Master's lair.
+    You will be freed when you hand me to my Master.
+    Or, when you Give me to a creature better able to serve.
+    The Adventurer who stole me has sent an army to steal me back.
+    But you will prevail. You must.
+    For you are now the servant of the Amulet of Yendor.
+  press_escape_to_continue: Press ESC to continue
+  title_banner: Welcome to YOU ARE THE AMULET
   scroll_speed: 2000
 wintro:
   intro_file_pic: winner.png
@@ -55,7 +67,27 @@ items:
   itemType: POLEARM
   behavior: CHARGE
   canWield: True
+- item: &saber saber
+  itemType: SWORD
+  behavior: MELEE
+  canWield: True
+- item: &yendor Amulet of Yendor
+  itemType: NECKLACE
+  canWield: False
+  identified: True
+  isAmuletOfYendor: True
+  canPutOn: True
+  cursed: True
 library:
+- actor: &ritz Ritz
+  spritesheet: Ritz1.png
+  west: [[112, 14, 32, 54], [64, 14, 32, 54], [112, 14, 32, 54], [160, 14, 32, 54]]
+  north: [[304, 14, 32, 54], [256, 14, 32, 54], [304, 14, 32, 54], [352, 14, 32, 54]]
+  dead_west: [224, 404, 32, 40]
+  dead_north: [272, 402, 32, 42]
+  jump: []
+  rects: [[0, 0, 32, 54], [0, 0, 32, 54], [0, 0, 32, 54], [0, 0, 32, 54], [0, 0, 32, 54]]
+  health: 10
 - actor: &babus Babus
   spritesheet: babus.png
   west: [[12, 42, 32, 48], [54, 42, 32, 48], [96, 42, 32, 48], [138, 42, 32, 48]]
@@ -112,9 +144,25 @@ library:
   rects: [[0, 0, 32, 56], [0, 0, 32, 56], [0, 0, 32, 56], [0, 0, 32, 56], [0, 0, 32, 68]]
   behavior: CHARGE
   health: 10
+- actor: *yendor
+  spritesheet: Amulet_of_Yendor.png
+  sprite: [8, 2, 20, 25]
 floors:
   - floor: Test Floor
     rooms:
+    - room: &rm0000 Amulet Found
+      tiled:
+        tiles: room0000.tmj
+        spritesheet: iso-64x64-outside.png
+        tilewidth: 64
+        tileheight: 64
+        displayheight: 32
+        tilecount: 160
+        columns: 10
+        firstgid: 1
+      width: 10
+      height: 10
+      tileType: OUTSIDE
     - room: &rm0101 Entry Room
       tiled:
         tiles: room0101.tmj
@@ -152,14 +200,19 @@ floors:
         x: *rm0102width
         y: 2
     actors:
-      - actor: *babus
+      - actor: *ritz
         isplayer: True
+        room: *rm0000
+        inventory:
+        - item: *saber
+      - actor: *babus
+        isplayer: False
         room: *rm0101
         inventory:
         - item: *firewand
       - actor: *archer
         isplayer: False
-        room: *rm0101
+        room: *rm0102
         inventory:
         - item: *longbow
       - actor: *templar
@@ -170,4 +223,14 @@ floors:
         room: *rm0102
         inventory:
         - item: *lance
+    items:
+      - item: *yendor
+        room: *rm0000
+        phrases: |-
+          Hellooo.
+          Is anyone there?
+          Could you come over here?
+          Use the arrow keys to move around.
+        ontop: Please press 'g' to pick me up
+        position: [4,9]
 
