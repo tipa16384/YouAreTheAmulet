@@ -56,11 +56,13 @@ def create_map(amulet):
                 froom.height = tiled_room['width']
                 froom.width = tiled_room['height']
                 froom.layers = tiled_room['layers']
+                froom.offset = froom.tiled['offset']
                 for layer_no, layer in enumerate(tiled_room['layers']):
                     if layer_no == 0:
                         froom.good_spaces = set((x, y) for y in range(froom.height) for x in range(froom.width) if layer['data'][(froom.width - 1 - x) * froom.height + y] != 0)
                     elif layer_no == 1:
-                        froom.bad_spaces = set((x-1, y+1) for y in range(froom.height) for x in range(froom.width) if layer['data'][(froom.width - 1 - x) * froom.height + y] != 0)
+                        froom.bad_spaces = set((x-froom.offset, y+froom.offset) for y in range(froom.height) for x in range(froom.width) if layer['data'][(froom.width - 1 - x) * froom.height + y] != 0)
+                        print (f"Bad spaces: {froom.name} {froom.offset} {froom.bad_spaces}")
 
                 all_spaces = list(froom.good_spaces - froom.bad_spaces)
                 froom.good_spaces = set(all_spaces)
@@ -150,10 +152,11 @@ def load_actors(amulet, floor_yaml, floor_room_map, floor_room_tiles_map):
         
         p_actor.health = p_actor.max_health = template['health']
 
-        for item in actor['inventory']:
-            pitem = Item(amulet.weapons[item['item']])
-            pitem.identified = True
-            p_actor.inventory.append(pitem)
+        if 'inventory' in actor and actor['inventory']:
+            for item in actor['inventory']:
+                pitem = Item(amulet.weapons[item['item']])
+                pitem.identified = True
+                p_actor.inventory.append(pitem)
 
         wieldable_items = [item for item in p_actor.inventory if item.can_wield()]
         if wieldable_items:

@@ -40,6 +40,7 @@ class Room:
         self.floor_tile.width = self.tiled['tilewidth']
         self.floor_tile.height = self.tiled['tileheight']
         self.floor_tile.surface_height = self.tiled['displayheight']
+        self.floor_lift = self.tiled['lift']
 
         layer = self.layers[0]['data']
 
@@ -87,7 +88,7 @@ class Room:
                 if sprite_num == 0:
                     continue
                 bx, by = self.screen_coords(x, y)
-                surface.blit(self.floor_tile_cache[sprite_num], (bx+dx, by+dy))
+                surface.blit(self.floor_tile_cache[sprite_num], (bx+dx, by+dy-self.floor_lift))
 
         ssize = 64
 
@@ -101,7 +102,7 @@ class Room:
                 for y in range(self.height):
                         sprite_num = layer[(self.width - 1 - x) * self.height + y]
                         if sprite_num != 0:
-                            hp = HasPosition((x-1, y+1))
+                            hp = HasPosition((x-self.offset, y+self.offset))
                             hp.image = self.floor_tile_cache[sprite_num]
                             draw_list.append(hp)
 
@@ -115,8 +116,8 @@ class Room:
                 surface.blit(
                     sprite, (sx + dx + (ssize-rects[2])//2, sy + dy - rects[3]+ssize//3))
             else:
-                bx, by = self.screen_coords(actor.x+1, actor.y-1)
-                surface.blit(actor.image, (bx+dx, by+dy))
+                bx, by = self.screen_coords(actor.x+self.offset, actor.y-self.offset)
+                surface.blit(actor.image, (bx+dx, by+dy-self.floor_lift))
 
         for exit in exits_to_draw:
             if exit[2] == self.height:

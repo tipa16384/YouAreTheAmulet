@@ -178,6 +178,8 @@ class Amulet:
         playerMoved = False
         waiting_for_selection = None
         waiting_for_godot = False
+        saving_ani = False
+        ani_frame = 0
 
         while self.state == ExitState.RUNNING:
             room = self.get_player_room()
@@ -213,6 +215,9 @@ class Amulet:
                         elif event.key == pygame.K_DOWN:
                             if player.alive:
                                 self.rotate_player(2)
+                        elif event.key == pygame.K_F12:
+                            saving_ani = True
+                            ani_frame = 0
                         elif event.key == pygame.K_p and event.mod & pygame.KMOD_SHIFT:
                             self.new_alert("Put on what? (type letter of item)")
                             waiting_for_selection = 'P'
@@ -237,6 +242,13 @@ class Amulet:
                         actor.animate()
                         if actor != player:
                             actor.face_player(player.x, player.y)
+                    if saving_ani:
+                        pygame.image.save(self.layout.screen, f"animation-{ani_frame:04}.png")
+                        ani_frame += 1
+                        if ani_frame == 4:
+                            saving_ani = False
+                            ani_frame = 0
+                            self.layout.add_message("Finished recording animation", TextColor.COOL)
                 elif event.type == self.movement_event:
                     for actor in [a for a in actors if a.getMoving() and a.alive]:
                         actor.update()

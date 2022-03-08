@@ -88,6 +88,15 @@ library:
   jump: []
   rects: [[0, 0, 32, 54], [0, 0, 32, 54], [0, 0, 32, 54], [0, 0, 32, 54], [0, 0, 32, 54]]
   health: 10
+- actor: &wizard Queen Remedi
+  spritesheet: QueenRemedi.png
+  west: [[128, 608, 62, 80], [194, 608, 62, 80], [260, 608, 62, 80], [328, 608, 62, 80]]
+  north: [[130, 702, 62, 80], [194, 702, 62, 80], [261, 702, 62, 80], [328, 702, 62, 80]]
+  dead_west: [128, 608, 62, 80]
+  dead_north: [130, 702, 62, 80]
+  jump: []
+  rects: [[0, 0, 62, 80], [0, 0, 62, 80], [0, 0, 62, 80], [0, 0, 62, 80], [0, 0, 62, 80]]
+  health: 100
 - actor: &babus Babus
   spritesheet: babus.png
   west: [[12, 42, 32, 48], [54, 42, 32, 48], [96, 42, 32, 48], [138, 42, 32, 48]]
@@ -160,6 +169,8 @@ floors:
         tilecount: 160
         columns: 10
         firstgid: 1
+        lift: 0
+        offset: 1
       width: 10
       height: 10
       tileType: OUTSIDE
@@ -173,6 +184,8 @@ floors:
         tilecount: 160
         columns: 10
         firstgid: 1
+        lift: 0
+        offset: 0
       width: 10
       height: 10
       tileType: OUTSIDE
@@ -184,6 +197,21 @@ floors:
       width: 10
       height: 1
       tileType: GRASS
+    - room: &rm0201 New Dungeon
+      tileType: ROOM
+      tiled:
+        tiles: room0201.tmj
+        tilewidth: 64
+        tileheight: 128
+        displayheight: 37
+        spritesheet: kenneytiles.png
+        tilecount: 255
+        columns: 15
+        firstgid: 1
+        lift: 91
+        offset: 0
+      width: 10
+      height: 10
     exits:
     - exit:
       - room: *rm0101
@@ -202,9 +230,12 @@ floors:
     actors:
       - actor: *ritz
         isplayer: True
-        room: *rm0000
+        room: *rm0201
         inventory:
         - item: *saber
+      - actor: *wizard
+        room: *rm0201
+        inventory:
       - actor: *babus
         isplayer: False
         room: *rm0101
