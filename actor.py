@@ -11,6 +11,7 @@ class Behavior(Enum):
     ARCHER = 1
     MELEE = 2
     CHARGE = 3
+    DUMMY = 4
 
 
 def manhattan_distance(a, b):
@@ -34,12 +35,13 @@ class Actor(StaticObject):
         self.move_queue = list()
         self.frame = 0
         self.is_player = False
-        self.name = "Actor"
         self.inventory = list()
         self.max_health = 10
         self.health = self.max_health
         self.alive = True
         self.dead_sprites = list()
+        self.target = None
+        self.in_range = False
 
     def get_behavior(self):
         for item in self.inventory:
@@ -172,6 +174,8 @@ class Actor(StaticObject):
             return dist <= 1.0
         elif behavior == Behavior.CHARGE:
             return self.line_of_sight(pos, player_pos, bad_spaces) and (pos[0] == player_pos[0] or pos[1] == player_pos[1])
+        elif behavior == Behavior.DUMMY:
+            return False
         dist = distance(pos, player_pos)
         return dist > 3.0 and dist <= 4.0
 

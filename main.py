@@ -41,6 +41,16 @@ if __name__ == '__main__':
     player = amulet.get_player()
     floor = amulet.get_floors()[0]
 
+    for room in floor.rooms:
+        if room.name == 'Training Room':
+            player.room = room
+            pos, facing = player.get_initial_space(room, True)
+            player.setPos(pos)
+            player.setFacing(facing)
+            break
+    
+    state = amulet.game_loop()
+
     if state == ExitState.DIED:
         outro = Outro(layout.screen, layout.font)
         outro.game_loop()

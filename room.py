@@ -2,8 +2,7 @@ import random
 from terraintile import TileType, TerrainTileFactory
 from spritesheet import SpriteSheet
 from staticobject import HasPosition, StaticObject
-from actor import Actor
-
+import pygame
 class TileObject(object):
     pass
 class Room:
@@ -19,6 +18,9 @@ class Room:
             (54, 9, 32, 48), colorkey=-1)
         self.name = "Room"
         self.floor_tile_cache = dict()
+        self.layers = None
+        self.tiled = None
+        self.phrases = None
 
     def screen_coords(self, x, y):
         sx = (x+y)*self.floor_tile.width//2
@@ -42,9 +44,11 @@ class Room:
         self.floor_tile.surface_height = self.tiled['displayheight']
         self.floor_lift = self.tiled['lift']
 
-        layer = self.layers[0]['data']
+        layer_list = list(layer for layer in self.layers if layer['type'] == 'tilelayer')
 
-        for flayer in self.layers:
+        layer = layer_list[0]['data']
+
+        for flayer in layer_list:
             for sprite_num in set(flayer['data']):
                 if sprite_num == 0 or sprite_num in self.floor_tile_cache:
                     continue
@@ -82,17 +86,32 @@ class Room:
                 bx, by = self.screen_coords(self.width+0.6, ey-0.5)
                 surface.blit(self.exit_ew, (bx+dx, by+dy))
         
+        tint_pos = None
+
+        for actor in actors:
+            if actor.getIsPlayer():
+                if actor.target:
+                    tint_pos = actor.target.getPos()
+                    tint_color = (0, 255, 0) if actor.in_range else (255, 0, 0)
+                break
+        
         for x in range(self.width-1, -1, -1):
             for y in range(self.height):
                 sprite_num = layer[(self.width - 1 - x) * self.height + y]
                 if sprite_num == 0:
                     continue
                 bx, by = self.screen_coords(x, y)
-                surface.blit(self.floor_tile_cache[sprite_num], (bx+dx, by+dy-self.floor_lift))
+
+                if tint_pos and x == tint_pos[0] and y == tint_pos[1]:
+                    tile_copy = self.floor_tile_cache[sprite_num].copy()
+                    tile_copy.fill(tint_color, special_flags=pygame.BLEND_RGB_MULT)
+                    surface.blit(tile_copy, (bx+dx, by+dy-self.floor_lift))
+                else:
+                    surface.blit(self.floor_tile_cache[sprite_num], (bx+dx, by+dy-self.floor_lift))
 
         ssize = 64
 
-        layer = self.layers[1]['data'] if len(self.layers) > 1 else None
+        layer = layer_list[1]['data'] if len(layer_list) > 1 else None
 
         draw_list = []
         draw_list += actors

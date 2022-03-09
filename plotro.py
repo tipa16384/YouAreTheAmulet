@@ -34,10 +34,10 @@ class Plotro:
                     break
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        state = ExitState.QUIT
+                        state = ExitState.WORE_AMULET
                         break
                     elif event.key == pygame.K_RETURN:
-                        state = ExitState.QUIT
+                        state = ExitState.WORE_AMULET
                         break
                     elif event.key == pygame.K_PRINTSCREEN:
                         pygame.image.save(self.screen, "screenshot.png")

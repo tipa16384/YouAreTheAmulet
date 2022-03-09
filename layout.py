@@ -65,6 +65,25 @@ class Layout:
         for index, item in enumerate(player.inventory):
             lines.append((TextColor.NORMAL, chr(ord('a')+index) + ") " + str(item)))
 
+        lines.append((TextColor.NORMAL, ""))
+        lines.append((TextColor.COOL, "Target"))
+        lines.append((TextColor.NORMAL, ""))
+
+        if not player.target:
+            lines.append((TextColor.NORMAL, "Nothing Targeted"))
+        else:
+            lines.append((TextColor.NORMAL, f"{player.target.name} at {player.target.x}, {player.target.y}"))
+
+        lines.append((TextColor.NORMAL, ""))
+        lines.append((TextColor.COOL, "Commands"))
+        lines.append((TextColor.NORMAL, ""))
+        lines.append((TextColor.NORMAL, "ESC - Quit"))
+        lines.append((TextColor.NORMAL, "TAB - Target"))
+        lines.append((TextColor.NORMAL, "PrtSc - Screenshot"))
+        lines.append((TextColor.NORMAL, "a - Attack Target"))
+        lines.append((TextColor.NORMAL, "g - Get Item"))
+        lines.append((TextColor.NORMAL, "P - Put On Item"))
+
         self.draw_lines(self.stats_rect, lines, True)
     
     def draw_messages(self):

@@ -20,13 +20,10 @@ class Amulet:
         self.myfont = layout.font
         self.floors = []
         self.animation_event = pygame.USEREVENT + 1
-        pygame.time.set_timer(self.animation_event, 250)
         self.movement_event = pygame.USEREVENT + 2
-        pygame.time.set_timer(self.movement_event, 1000//120)
         self.actors = []
         self.end_game_event = pygame.USEREVENT + 3
         self.item_phrase_event = pygame.USEREVENT + 4
-        pygame.time.set_timer(self.item_phrase_event, 10000)
         self.state = ExitState.RUNNING
 
         self.new_message("Welcome to You are the Amulet!, an entry to the 7DRL 2022 Challenge")
@@ -53,7 +50,7 @@ class Amulet:
     def object_at(self, x, y):
         room = self.get_player_room()
         for actor in self.actors:
-            if actor.room == room and actor.getPos() == (x, y):
+            if actor.room == room and actor.getPos() == (x, y) and isinstance(actor, Actor):
                 return actor
         return None
 
@@ -146,6 +143,9 @@ class Amulet:
         msg = f"{attacker.pronoun_subject()} {victim.pronoun_object()} with {attacker.wielding()}."
         victim.health -= 1
         self.new_alert(msg)
+        if victim.health <= 0:
+            self.new_alert(f"{victim.name} died.")
+            victim.kill()
 
     def kill_non_player(self, actors: list):
         for actor in actors:
@@ -173,6 +173,22 @@ class Amulet:
                     if item.isyendor:
                         self.state = ExitState.WORE_AMULET
 
+    def switch_target(self, player, actors):
+        eligible_actors = [actor for actor in actors if actor.alive and actor != player]
+        if len(eligible_actors) == 0:
+            self.new_alert("There is no one to attack.")
+            player.target = None
+            return
+        if player.target is None:
+            player.target = eligible_actors[0]
+        else:
+            player.target = eligible_actors[(eligible_actors.index(player.target) + 1) % len(eligible_actors)]
+
+    def verify_target(self, player, actors):
+        if player.target and (not player.target.alive or player.target not in actors):
+            self.new_alert("You have no target.")
+            player.target = None
+
     def game_loop(self):
         self.state = ExitState.RUNNING
         playerMoved = False
@@ -180,6 +196,10 @@ class Amulet:
         waiting_for_godot = False
         saving_ani = False
         ani_frame = 0
+
+        pygame.time.set_timer(self.animation_event, 250)
+        pygame.time.set_timer(self.movement_event, 1000//120)
+        pygame.time.set_timer(self.item_phrase_event, 10000)
 
         while self.state == ExitState.RUNNING:
             room = self.get_player_room()
@@ -218,6 +238,12 @@ class Amulet:
                         elif event.key == pygame.K_F12:
                             saving_ani = True
                             ani_frame = 0
+                        elif event.key == pygame.K_TAB:
+                            self.switch_target(player, actors)
+                        elif event.key == pygame.K_a:
+                            if player.target and player.in_range:
+                                player.face_player(player.target.x, player.target.y)
+                                self.attack(player, player.target)
                         elif event.key == pygame.K_p and event.mod & pygame.KMOD_SHIFT:
                             self.new_alert("Put on what? (type letter of item)")
                             waiting_for_selection = 'P'
@@ -240,7 +266,7 @@ class Amulet:
                 elif event.type == self.animation_event:
                     for actor in (a for a in actors if a.room == room and a.alive):
                         actor.animate()
-                        if actor != player:
+                        if actor != player and actor.in_range:
                             actor.face_player(player.x, player.y)
                     if saving_ani:
                         pygame.image.save(self.layout.screen, f"animation-{ani_frame:04}.png")
@@ -252,16 +278,25 @@ class Amulet:
                 elif event.type == self.movement_event:
                     for actor in [a for a in actors if a.getMoving() and a.alive]:
                         actor.update()
-                    if playerMoved:
-                        for actor in [a for a in actors if not a.getMoving() and not a.getIsPlayer() and a.alive]:
-                            bad_spaces = set(
-                                (b for a in objects for b in a.i_am_at() if a != actor))
-                            bad_spaces = room.bad_spaces | bad_spaces
-                            ready_to_attack = actor.pathfind(
-                                player, bad_spaces)
-                            if ready_to_attack:
+                    for actor in [a for a in actors if not a.getMoving() and a.alive]:
+                        bad_spaces = set(
+                            (b for a in actors for b in a.i_am_at() if a != actor))
+                        bad_spaces = room.bad_spaces | bad_spaces
+                        if actor.getIsPlayer():
+                            if actor.target:
+                                actor.in_range = actor.good_pos(actor.getPos(), actor.target.getPos(), bad_spaces)
+                                #print (f"{actor.name} in range: {actor.in_range}")
+                            else:
+                                actor.in_range = False
+                                #print (f"No target")
+                        elif playerMoved:
+                            actor.in_range = actor.pathfind(player, bad_spaces)
+                            actor.target = player
+                            if actor.in_range:
                                 self.attack(actor, player)
-                        playerMoved = False
+                    playerMoved = False
+
+            self.verify_target(player, actors)
 
             if not waiting_for_godot and player.health <= 0:
                 player.kill()
@@ -297,3 +332,11 @@ class Amulet:
         room = self.get_player_room()
         objects = self.objects_in_room(room)
         room.draw(self.screen, objects, self.get_floors()[0].exits)
+
+        if room.phrases:
+            y = 5
+            for phrase in room.phrases:
+                message = self.myfont.render(phrase, True, self.layout.get_text_color(TextColor.BRIGHT))
+                x = (self.screen.get_width() - message.get_width()) // 2
+                self.screen.blit(message, (x, y))
+                y += self.myfont.get_linesize()

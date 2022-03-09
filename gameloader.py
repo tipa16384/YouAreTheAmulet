@@ -9,6 +9,7 @@ from terraintile import TileType
 import pygame
 from spritesheet import SpriteSheet
 from item import Item
+from math import ceil, floor
 
 json_fn = 'amulet.dat'
 
@@ -47,6 +48,7 @@ def create_map(amulet):
             froom.bad_spaces = set()
             froom.good_spaces = set(all_spaces)
             froom.tiled = None
+            froom.phrases = [] if not 'phrases' in room or not room['phrases'] else room['phrases'].split('\n')
 
             if 'tiled' in room:
                 froom.tiled = room['tiled']
@@ -57,7 +59,7 @@ def create_map(amulet):
                 froom.width = tiled_room['height']
                 froom.layers = tiled_room['layers']
                 froom.offset = froom.tiled['offset']
-                for layer_no, layer in enumerate(tiled_room['layers']):
+                for layer_no, layer in enumerate(layer for layer in tiled_room['layers'] if layer['type'] == 'tilelayer'):
                     if layer_no == 0:
                         froom.good_spaces = set((x, y) for y in range(froom.height) for x in range(froom.width) if layer['data'][(froom.width - 1 - x) * froom.height + y] != 0)
                     elif layer_no == 1:
@@ -93,14 +95,24 @@ def load_items(amulet, floor_yaml, floor_room_map):
         template = amulet.library[item['item']]
         sprite_rect = template['sprite']
         sprites = SpriteSheet(template['spritesheet']).load_strip(sprite_rect, 1, colorkey=-1)
-        pos = item['position']
+        room = floor_room_map[room_name]
+
+        pos = item['position'] if 'position' in item else None
+
+        print (f"Position of {item['item']} is {pos}")
+
         p_item = StaticObject(sprites, None, pos)
         p_item.sprite = sprites[0]
         p_item.rect = (0, 0, sprite_rect[2] - sprite_rect[0], sprite_rect[3] - sprite_rect[1])
-        p_item.room = floor_room_map[room_name]
+        p_item.room = room
         p_item.phrases = item['phrases'].split('\n') if 'phrases' in item else None
         p_item.ontop = item['ontop'] if 'ontop' in item else None
         p_item.name = item['item']
+
+        pos, _ = p_item.get_initial_space(room)
+
+        print (f"Alternate positioning for {p_item.name} in {room.name} is {pos}")
+        p_item.setPos(pos)
 
         amulet.actors.append(p_item)
 
@@ -108,6 +120,8 @@ def load_actors(amulet, floor_yaml, floor_room_map, floor_room_tiles_map):
     for actor in floor_yaml['actors']:
         room_name = actor['room'] if 'room' in actor else 'Entry Room'
         all_spaces = floor_room_tiles_map[room_name]
+        room = floor_room_map[room_name]
+
         template = amulet.library[actor['actor']]
 
         sprites = SpriteSheet(template['spritesheet'])
@@ -162,7 +176,18 @@ def load_actors(amulet, floor_yaml, floor_room_map, floor_room_tiles_map):
         if wieldable_items:
             wieldable_items[0].wield()
 
-        p_actor.room = floor_room_map[room_name]
-        p_actor.phrases = actor['phrases'] if 'phrases' in actor else None
+        p_actor.room = room
+        p_actor.phrases = actor['phrases'].split('\n') if 'phrases' in actor else None
         p_actor.ontop = actor['ontop'] if 'ontop' in actor else None
+
+        pos, facing = p_actor.get_initial_space(room, p_actor.getIsPlayer())
+
+        print (f"Alternate positioning for {p_actor.name} in {room.name} is {(pos, facing)}")
+        
+        if pos:
+            p_actor.setFacing(facing)
+            p_actor.setPos(pos)
+
+        if pos and pos in all_spaces: all_spaces.remove(pos)
+
         amulet.actors.append(p_actor)

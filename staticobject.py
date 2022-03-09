@@ -1,14 +1,14 @@
 from spritesheet import SpriteSheet
-
+from math import floor
 class HasPosition:
     def __init__(self, pos):
-        self.pos = pos
-        self.x, self.y = pos
+        self.setPos(pos)
 
     def getPos(self):
         return self.pos
 
     def setPos(self, pos):
+        if not pos: pos = (0,0)
         self.x, self.y = pos
         self.pos = pos
 
@@ -30,6 +30,7 @@ class StaticObject(HasPosition):
         self.rects = rects
         self.animated = type(sprites[0]) == list
         self.room = None
+        self.name = "StaticObject"
 
     def get_sprite(self):
         return self.sprites[0]
@@ -44,6 +45,27 @@ class StaticObject(HasPosition):
     def get_rect(self):
         return self.rect
 
+    def get_initial_space(self, room, isplayer = False):
+        pos = None
+        facing = 0
+
+        if room.layers:
+            print (f"Looking for initial space in room with layers for {self.name}")
+            for layer in room.layers:
+                if layer['type'] == 'objectgroup':
+                    for obj in layer['objects']:
+                        if obj['name'] == self.name or (obj['name'] == 'Player' and isplayer):
+                            pos = (obj['x'], obj['y'])
+                            print (f"Raw position of {self.name} is {pos}")
+                            pos = (floor((room.width * 32 - pos[1]) / 32), pos[0] // 32)
+                            print (f"Room has tiled? {room.tiled is not None}")
+                            if room.tiled:
+                                pos = (pos[0] - room.tiled['offset'], pos[1] + room.tiled['offset'])
+                                print (f"Offset position is {pos}")
+                            print (f"Position of {self.name} is {pos}")
+                            facing = obj['rotation'] // 90
+        
+        return pos, facing
 
 class Pillar(StaticObject):
     def __init__(self, pos):
