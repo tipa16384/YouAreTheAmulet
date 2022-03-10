@@ -43,6 +43,9 @@ class Item:
     def wield(self):
         if self.can_wield() and not self.wielded:
             self.wielded = True
+        else:
+            self.wielded = False
+        return self.wielded
     
     def put_on(self):
         if self.can_put_on and not self.adorned:

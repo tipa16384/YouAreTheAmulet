@@ -3,6 +3,7 @@ from terraintile import TileType, TerrainTileFactory
 from spritesheet import SpriteSheet
 from staticobject import HasPosition, StaticObject
 import pygame
+
 class TileObject(object):
     pass
 class Room:
@@ -103,8 +104,8 @@ class Room:
                 bx, by = self.screen_coords(x, y)
 
                 if tint_pos and x == tint_pos[0] and y == tint_pos[1]:
-                    tile_copy = pygame.transform.flip(self.floor_tile_cache[sprite_num], False, False)
-                    #tile_copy = self.floor_tile_cache[sprite_num].copy()
+                    #tile_copy = pygame.transform.flip(self.floor_tile_cache[sprite_num], False, False)
+                    tile_copy = self.floor_tile_cache[sprite_num].copy()
                     tile_copy.fill(tint_color, special_flags=pygame.BLEND_RGB_MULT)
                     surface.blit(tile_copy, (bx+dx, by+dy-self.floor_lift))
                 else:

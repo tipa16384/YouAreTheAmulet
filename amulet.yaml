@@ -1,16 +1,22 @@
 layout:
-  screen_width: 1024
-  screen_height: 768
   logo: [0, 0, 244, 100]
   logo_pic: gamelogo.png
-  stats: [0, 100, 244, 668]
-  game: [244, 0, 780, 586]
-  messages: [244, 586, 780, 182]
-  num_messages: 9
   bg_color: "#3b3938"
   bright_color: "#fedf01"
   text_color: "#e1e4e1"
   cool_color: "#2ba7bf"
+  screen_width: 1024
+  screen_height: 768
+  stats: [0, 100, 244, 668]
+  game: [244, 0, 780, 586]
+  messages: [244, 586, 780, 182]
+  num_messages: 9
+  # screen_width: 800
+  # screen_height: 600
+  # stats: [0, 100, 244, 418]
+  # game: [244, 0, 556, 356]
+  # messages: [244, 418, 556, 182]
+  # num_messages: 9
 intro:
   intro_file_pic: amuletintro.png
   intro_text: 
@@ -77,7 +83,7 @@ items:
   identified: True
   isAmuletOfYendor: True
   canPutOn: True
-  cursed: True
+  cursed: False
 - item: &nomove Finger Guns
   itemType: NECKLACE
   canWield: True
@@ -92,7 +98,7 @@ library:
   jump: []
   rects: [[0, 0, 32, 54], [0, 0, 32, 54], [0, 0, 32, 54], [0, 0, 32, 54], [0, 0, 32, 54]]
   health: 10
-- actor: &wizard Queen Remedi
+- actor: &wizard Wizard of Yendor
   spritesheet: QueenRemedi.png
   west: [[128, 608, 62, 80], [194, 608, 62, 80], [260, 608, 62, 80], [328, 608, 62, 80]]
   north: [[130, 702, 62, 80], [194, 702, 62, 80], [261, 702, 62, 80], [328, 702, 62, 80]]
@@ -306,4 +312,7 @@ floors:
         position: [5,5]
       - item: *frog
         room: *rm0202
+roadmap:
+  - *rm0202
+  - *rm0201
 

@@ -1,3 +1,4 @@
+from math import sqrt
 import random
 import pygame
 from actor import Actor
@@ -153,9 +154,6 @@ class Amulet:
                 actor.kill()
                 self.new_alert(f"{actor.name} is dead.")
 
-    def any_npcs_alive(self):
-        return reduce(lambda x, y: x or y, [a.alive for a in self.actors if isinstance(a, Actor) and not a.getIsPlayer()])
-    
     def handle_inventory(self, player, option, selection):
         item_index = selection - pygame.K_a
         if item_index < 0 or item_index >= len(player.inventory):
@@ -172,9 +170,41 @@ class Amulet:
                     item.put_on()
                     if item.isyendor:
                         self.state = ExitState.WORE_AMULET
+            elif option == 'T':
+                if not player.target:
+                    self.new_alert("You must first target an enemy.")
+                elif sqrt((player.target.x - player.x)**2 + (player.target.y - player.y)**2) > 4:
+                    self.new_alert("You are too far away.")
+                else:
+                    player.inventory.remove(item)
+                    player.target.inventory.append(item)
+                    self.new_alert(f"You throw {str(item)} at {player.target.name}.")
+                    if item.isyendor:
+                        player.setIsPlayer(False)
+                        player.target.setIsPlayer(True)
+                        self.new_alert(f"You are now {player.target.name}.")
+                        player.target.target = None
+                        player.target = None
+                        item.adorned = True
+            elif option == 'W':
+                if not item.can_wield():
+                    self.new_alert("You cannot wield this item.")
+                else:
+                    for pitem in player.inventory:
+                        if pitem.is_wielded():
+                            if item != pitem:
+                                pitem.wield()
+                                self.new_alert(f"You are no longer wielding {str(pitem)}.")
+                    if item.wield():
+                        self.new_alert(f"You are now wielding {str(item)}.")
+                    else:
+                        self.new_alert(f"You are no longer wielding {str(item)}")
+
+    def get_eligible_actors(self, player, actors):
+        return list(actor for actor in actors if actor.alive and actor != player)
 
     def switch_target(self, player, actors):
-        eligible_actors = [actor for actor in actors if actor.alive and actor != player]
+        eligible_actors = self.get_eligible_actors(player, actors)
         if len(eligible_actors) == 0:
             self.new_alert("There is no one to attack.")
             player.target = None
@@ -189,7 +219,7 @@ class Amulet:
             self.new_alert("You have no target.")
             player.target = None
 
-    def game_loop(self):
+    def game_loop(self, killEverything = False):
         self.state = ExitState.RUNNING
         playerMoved = False
         waiting_for_selection = None
@@ -216,12 +246,15 @@ class Amulet:
                         if waiting_for_selection:
                             self.handle_inventory(player, waiting_for_selection, event.key)
                             waiting_for_selection = False
+                            playerMoved = True
                             continue
 
                         # Was it the Escape key? If so, stop the loop.
                         if event.key == pygame.K_ESCAPE:
                             self.state = ExitState.QUIT
                             break
+                        elif event.key == pygame.K_PERIOD:
+                            playerMoved = True
                         elif event.key == pygame.K_LEFT:
                             if player.alive:
                                 self.rotate_player(-1)
@@ -241,16 +274,26 @@ class Amulet:
                         elif event.key == pygame.K_TAB:
                             self.switch_target(player, actors)
                         elif event.key == pygame.K_a:
-                            if player.target and player.in_range:
+                            if player.alive and player.target and player.in_range:
                                 player.face_player(player.target.x, player.target.y)
                                 self.attack(player, player.target)
+                                playerMoved = True
                         elif event.key == pygame.K_p and event.mod & pygame.KMOD_SHIFT:
-                            self.new_alert("Put on what? (type letter of item)")
+                            self.new_alert("Put on or take off what? (type letter of item)")
                             waiting_for_selection = 'P'
+                            break
+                        elif event.key == pygame.K_t and event.mod & pygame.KMOD_SHIFT:
+                            self.new_alert("Toss what? (type letter of item)")
+                            waiting_for_selection = 'T'
+                            break
+                        elif event.key == pygame.K_w and event.mod & pygame.KMOD_SHIFT:
+                            self.new_alert("Wield or unwield what? (type letter of item)")
+                            waiting_for_selection = 'W'
                             break
                         elif event.key == pygame.K_g:
                             if player.alive:
                                 self.pick_up_items(player, objects)
+                                playerMoved = True
                         elif event.key == pygame.K_k and event.mod & pygame.KMOD_SHIFT:
                             if player.alive:
                                 self.kill_non_player(actors)
@@ -262,7 +305,7 @@ class Amulet:
                 elif event.type == self.item_phrase_event:
                     self.items_speak(objects, player)
                 elif event.type == self.end_game_event:
-                    self.state = ExitState.DIED if waiting_for_godot else ExitState.WON
+                    self.state = ExitState.DIED if not player.alive else ExitState.WON
                 elif event.type == self.animation_event:
                     for actor in (a for a in actors if a.room == room and a.alive):
                         actor.animate()
@@ -304,7 +347,7 @@ class Amulet:
                 pygame.time.set_timer(self.end_game_event, 5000)
                 waiting_for_godot = True
 
-            if not waiting_for_godot and player.alive and not self.any_npcs_alive():
+            if not waiting_for_godot and player.alive and killEverything and not self.get_eligible_actors(player, actors):
                 self.new_message("You killed everything!")
                 pygame.time.set_timer(self.end_game_event, 5000)
                 waiting_for_godot = True

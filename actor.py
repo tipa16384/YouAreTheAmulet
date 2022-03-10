@@ -153,7 +153,7 @@ class Actor(StaticObject):
         if dist == 0:
             return True
 
-        for i in range(dist):
+        for i in range(int(dist)):
             x = int(from_pos[0] + (to_pos[0] - from_pos[0])/dist * i)
             y = int(from_pos[1] + (to_pos[1] - from_pos[1])/dist * i)
             if (x, y) != from_pos and (x, y) != to_pos and (x, y) in bad_spaces:
@@ -165,13 +165,13 @@ class Actor(StaticObject):
         behavior = self.get_behavior()
         if behavior == Behavior.MAGIC:
             dist = distance(pos, player_pos)
-            return self.line_of_sight(pos, player_pos, bad_spaces) and dist > 3.0 and dist <= 4.0
+            return self.line_of_sight(pos, player_pos, bad_spaces) and dist <= 6.0
         elif behavior == Behavior.ARCHER:
             dist = distance(pos, player_pos)
             return self.line_of_sight(pos, player_pos, bad_spaces) and dist >= 3 and dist <= 5
         elif behavior == Behavior.MELEE:
             dist = distance(pos, player_pos)
-            return dist <= 1.0
+            return dist < 2.0
         elif behavior == Behavior.CHARGE:
             return self.line_of_sight(pos, player_pos, bad_spaces) and (pos[0] == player_pos[0] or pos[1] == player_pos[1])
         elif behavior == Behavior.DUMMY:
@@ -221,6 +221,25 @@ class Actor(StaticObject):
                 if new_pos in bad_spaces:
                     continue
                 heapq.heappush(heap, (dist+1, new_pos, path + [new_pos]))
+        
+        # there was no path to the player. let's just move to the player.
+
+        heap = list()
+        for dx, dy in __facing_deltas__:
+            new_pos = (self.pos[0] + dx, self.pos[1] + dy)
+            if not self.in_room(*new_pos):
+                continue
+            if new_pos in bad_spaces:
+                continue
+            dist = distance(new_pos, player_pos)
+            heapq.heappush(heap, (dist, new_pos))
+
+        print ("No path to player for attack, but we can get closer")
+
+        if heap:
+            dist, new_pos = heapq.heappop(heap)
+            print ("Moving from %s to %s" % (self.pos, new_pos))
+            self.move_to(*self.pos, *new_pos)
 
         return False
 

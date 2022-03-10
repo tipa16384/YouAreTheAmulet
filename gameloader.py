@@ -10,6 +10,7 @@ import pygame
 from spritesheet import SpriteSheet
 from item import Item
 from math import ceil, floor
+import os
 
 json_fn = 'amulet.dat'
 
@@ -19,6 +20,10 @@ def create_map(amulet):
     
     amulet.floors = []
     amulet.actors = []
+    amulet.roadmap = []
+
+    if 'roadmap' in game_yaml:
+        amulet.roadmap = game_yaml['roadmap']
 
     library_map = dict()
     for actor in game_yaml['library']:
@@ -53,7 +58,7 @@ def create_map(amulet):
             if 'tiled' in room:
                 froom.tiled = room['tiled']
                 froom.room_sprites = SpriteSheet(froom.tiled['spritesheet'])
-                with open(froom.tiled['tiles'], "r") as stream:
+                with open(os.path.join('rooms',froom.tiled['tiles']), "r") as stream:
                     tiled_room = json.load(stream)
                 froom.height = tiled_room['width']
                 froom.width = tiled_room['height']

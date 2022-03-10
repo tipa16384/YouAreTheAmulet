@@ -1,6 +1,7 @@
 import pygame
 from enum import Enum
 import json
+import os
 
 json_fn = 'amulet.dat'
 
@@ -17,7 +18,7 @@ class Layout:
         self.screen_width = layout['screen_width']
         self.screen_height = layout['screen_height']
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-        self.logo_image = pygame.image.load(layout['logo_pic'])
+        self.logo_image = pygame.image.load(os.path.join('images',layout['logo_pic']))
         self.logo_rect = layout['logo']
         self.stats_rect = layout['stats']
         self.messages_rect = layout['messages']
@@ -72,7 +73,7 @@ class Layout:
         if not player.target:
             lines.append((TextColor.NORMAL, "Nothing Targeted"))
         else:
-            lines.append((TextColor.NORMAL, f"{player.target.name} at {player.target.x}, {player.target.y}"))
+            lines.append((TextColor.NORMAL, f"{player.target.name} at {int(player.target.x)}, {int(player.target.y)}"))
 
         lines.append((TextColor.NORMAL, ""))
         lines.append((TextColor.COOL, "Commands"))
@@ -80,9 +81,12 @@ class Layout:
         lines.append((TextColor.NORMAL, "ESC - Quit"))
         lines.append((TextColor.NORMAL, "TAB - Target"))
         lines.append((TextColor.NORMAL, "PrtSc - Screenshot"))
+        lines.append((TextColor.NORMAL, ". - Rest"))
         lines.append((TextColor.NORMAL, "a - Attack Target"))
         lines.append((TextColor.NORMAL, "g - Get Item"))
-        lines.append((TextColor.NORMAL, "P - Put On Item"))
+        lines.append((TextColor.NORMAL, "P - Put On/Take Off Item"))
+        lines.append((TextColor.NORMAL, "T - Toss Item"))
+        lines.append((TextColor.NORMAL, "W - Wield/Unwield Item"))
 
         self.draw_lines(self.stats_rect, lines, True)
     

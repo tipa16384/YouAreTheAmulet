@@ -7,10 +7,11 @@ from outro import Outro
 from wintro import Wintro
 from layout import Layout
 from plotro import Plotro
+import os
 
-def init_screen(layout: Layout):
+def init_screen():
     pygame.mixer.init()
-    pygame.mixer.music.load("epic-heart-2-min-8643.mp3")
+    pygame.mixer.music.load(os.path.join('music',"epic-heart-2-min-8643.mp3"))
     pygame.mixer.music.play()
 
 def exit():
@@ -20,7 +21,7 @@ def exit():
 
 if __name__ == '__main__':
     layout = Layout()
-    init_screen(layout)
+    init_screen()
 
     intro = Intro(layout.screen, layout.font)
     intro.game_loop()
@@ -41,15 +42,19 @@ if __name__ == '__main__':
     player = amulet.get_player()
     floor = amulet.get_floors()[0]
 
-    for room in floor.rooms:
-        if room.name == 'Training Room':
-            player.room = room
-            pos, facing = player.get_initial_space(room, True)
-            player.setPos(pos)
-            player.setFacing(facing)
-            break
+    for room_name in amulet.roadmap:
+        for room in floor.rooms:
+            if room.name == room_name:
+                player.room = room
+                pos, facing = player.get_initial_space(room, True)
+                player.setPos(pos)
+                player.setFacing(facing)
+                break
     
-    state = amulet.game_loop()
+        state = amulet.game_loop(True)
+
+        if not state == ExitState.WON:
+            break
 
     if state == ExitState.DIED:
         outro = Outro(layout.screen, layout.font)

@@ -1,6 +1,7 @@
 import pygame
 import json
 from amulet import ExitState
+import os
 
 json_fn = 'amulet.dat'
 
@@ -10,7 +11,7 @@ class Outro:
         intro_data = json.load(open(json_fn))['outro']
         self.screen = screen
         self.myfont = myfont
-        self.intro_pic = pygame.image.load(intro_data['intro_file_pic'])
+        self.intro_pic = pygame.image.load(os.path.join('images',intro_data['intro_file_pic']))
         self.titleFont = pygame.font.SysFont(None, 48)
         self.continue_text = self.myfont.render(
             intro_data['press_escape_to_continue'], True, (255, 255, 255))
