@@ -2,6 +2,7 @@ import pygame
 from enum import Enum
 import json
 import os
+from finder import helper
 
 json_fn = 'amulet.dat'
 
@@ -17,8 +18,15 @@ class Layout:
         pygame.font.init()
         self.screen_width = layout['screen_width']
         self.screen_height = layout['screen_height']
+
+        if 'gameport' in layout:
+            self.gameport_rect = layout['gameport']
+            self.gameport = pygame.Surface((layout['gameport'][2], layout['gameport'][3]))
+        else:
+            self.gameport = None
+
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-        self.logo_image = pygame.image.load(os.path.join('images',layout['logo_pic']))
+        self.logo_image = pygame.image.load(helper(layout['logo_pic']))
         self.logo_rect = layout['logo']
         self.stats_rect = layout['stats']
         self.messages_rect = layout['messages']
@@ -41,12 +49,20 @@ class Layout:
         self.draw_stats(game_state)
         self.draw_messages()
         self.draw_game(game_state)
+        self.drawscale()
+
+    def drawscale(self):
+        # resize self.screen into self.realscreen
         pygame.display.flip()
 
     def draw_game(self, game_state):
         self.game_screen.fill(self.bg_color)
         game_state.draw()
-        self.screen.blit(self.game_screen, self.game_rect)
+        if self.gameport:
+            pygame.transform.scale(self.game_screen, (self.gameport.get_width(), self.gameport.get_height()), self.gameport)
+            self.screen.blit(self.gameport, self.gameport_rect)
+        else:
+            self.screen.blit(self.game_screen, self.game_rect)
 
     def draw_logo(self):
         image_rect = self.logo_image.get_rect()

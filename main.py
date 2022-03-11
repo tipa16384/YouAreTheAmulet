@@ -8,10 +8,11 @@ from wintro import Wintro
 from layout import Layout
 from plotro import Plotro
 import os
+from finder import helper
 
 def init_screen():
     pygame.mixer.init()
-    pygame.mixer.music.load(os.path.join('music',"epic-heart-2-min-8643.mp3"))
+    pygame.mixer.music.load(helper("epic-heart-2-min-8643.mp3"))
     pygame.mixer.music.play()
 
 def exit():
@@ -23,7 +24,7 @@ if __name__ == '__main__':
     layout = Layout()
     init_screen()
 
-    intro = Intro(layout.screen, layout.font)
+    intro = Intro(layout, layout.screen, layout.font)
     intro.game_loop()
 
     amulet = Amulet(layout)
@@ -33,7 +34,7 @@ if __name__ == '__main__':
     if state == ExitState.QUIT:
         exit()
     
-    plotro = Plotro(layout.screen, layout.font)
+    plotro = Plotro(layout, layout.screen, layout.font)
     state = plotro.game_loop()
 
     if state == ExitState.QUIT:
@@ -49,7 +50,6 @@ if __name__ == '__main__':
                 pos, facing = player.get_initial_space(room, True)
                 player.setPos(pos)
                 player.setFacing(facing)
-                print (f"Player is in {player.room.name} and room takes amulet {room.takeAmulet}")
                 break
     
         state = amulet.game_loop(True)
@@ -58,9 +58,9 @@ if __name__ == '__main__':
             break
 
     if state == ExitState.DIED:
-        outro = Outro(layout.screen, layout.font)
+        outro = Outro(layout, layout.screen, layout.font)
         outro.game_loop()
     elif state == ExitState.WON:
-        wintro = Wintro(layout.screen, layout.font)
+        wintro = Wintro(layout, layout.screen, layout.font)
         wintro.game_loop()
 

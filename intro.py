@@ -1,15 +1,16 @@
 import pygame
 import json
-import os
+from finder import helper
 
 json_fn = 'amulet.dat'
 
 class Intro:
-    def __init__(self, screen, myfont):
+    def __init__(self, layout, screen, myfont):
         intro_data = json.load(open(json_fn))['intro']
+        self.layout = layout
         self.screen = screen
         self.myfont = myfont
-        self.intro_pic = pygame.image.load(os.path.join('images',intro_data['intro_file_pic']))
+        self.intro_pic = pygame.image.load(helper(intro_data['intro_file_pic']))
         self.titleFont = pygame.font.SysFont(None, 48)
         self.continue_text = self.myfont.render(intro_data['press_escape_to_continue'], True, (255, 255, 255))
         self.title_text = self.titleFont.render(intro_data['title_banner'], True, (255, 255, 255))
@@ -41,7 +42,11 @@ class Intro:
                         pygame.image.save(self.screen, "yata-intro-screenshot.png")
 
             self.screen.fill((0, 0, 0))
-            self.screen.blit(self.intro_pic, (0, 0))
+
+            # center intro pic
+            pic_rect = self.intro_pic.get_rect()
+            pic_rect.center = self.screen.get_rect().center
+            self.screen.blit(self.intro_pic, pic_rect)
 
             start_y = self.screen.get_height()/2 - (len(self.intro_lines) * line_height)/2
 
@@ -53,6 +58,7 @@ class Intro:
 
             self.screen.blit(self.title_text, (self.screen.get_width()/2 - self.title_text.get_width()/2, self.screen.get_height()/4 - self.title_text.get_height()/2))
             self.screen.blit(self.continue_text, (self.screen.get_width()/2 - self.continue_text.get_width()/2, self.screen.get_height() - 3 * self.continue_text.get_height()))
-            pygame.display.flip()
+            
+            self.layout.drawscale()
 
         return running

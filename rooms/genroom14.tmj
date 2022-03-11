@@ -1,0 +1,44 @@
+{ "compressionlevel":-1,
+ "height":8,
+ "infinite":false,
+ "layers":[
+        {
+         "data":[78, 100, 100, 38, 95, 0, 94, 105, 37, 0, 105, 101, 0, 0, 104, 107, 0, 89, 92, 105, 0, 33, 0, 34, 106, 94, 40, 99, 74, 76, 0, 103, 0, 39, 37, 0, 0, 35, 0, 79, 104, 0, 82, 39, 80, 0, 0, 92, 86, 96, 106, 35, 99, 101, 0, 108, 34, 82, 92, 81, 89, 35, 104, 104],
+         "height":8,
+         "id":1,
+         "name":"Tile Layer 1",
+         "opacity":1,
+         "type":"tilelayer",
+         "visible":true,
+         "width":8,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "data":[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 140, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 147, 0, 0, 0, 0, 0, 0, 145, 0, 0, 126, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+         "height":8,
+         "id":2,
+         "name":"Tile Layer 2",
+         "opacity":1,
+         "type":"tilelayer",
+         "visible":true,
+         "width":8,
+         "x":0,
+         "y":0
+        }],
+ "nextlayerid":3,
+ "nextobjectid":1,
+ "orientation":"isometric",
+ "renderorder":"right-down",
+ "tiledversion":"1.8.2",
+ "tileheight":32,
+ "tilesets":[
+        {
+         "firstgid":1,
+         "source":"..\/..\/kenneytiles.tsx"
+        }],
+ "tilewidth":64,
+ "type":"map",
+ "version":"1.8",
+ "width":8
+}

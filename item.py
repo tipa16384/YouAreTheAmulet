@@ -15,6 +15,7 @@ class ItemType(Enum):
     STAFF = 12
     FOOD = 13
     NECKLACE = 14
+    UNARMED = 15
 
 class Item:
     def __init__(self, template: dict):
@@ -32,6 +33,12 @@ class Item:
         self.cursed_state_known = False
         self.hitchance = 0
         self.damage = "1"
+
+    def is_vampiric(self):
+        return 'vampiric' in self.template and self.template['vampiric']
+
+    def can_block(self):
+        return 'blocks' in self.template and self.template['blocks'] and self.quantity > 0
 
     def can_attack(self):
         return self.is_wielded() and self.quantity > 0
@@ -99,3 +106,13 @@ class Item:
 
         return name
 
+class MartialArts(Item):
+    def __init__(self):
+        template = { 'itemType': 'UNARMED', 'item': 'martial arts', 'identified': True, 'canWield': True, 'hitchance': 90, 'damage': '1d1' }
+        super().__init__(template)
+        self.quantity = 1000000
+        self.hitchance = 90
+    def __str__(self):
+        return 'martial arts'
+
+martialArts = MartialArts()

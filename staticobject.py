@@ -65,6 +65,9 @@ class StaticObject(HasPosition):
         except StopIteration:
             pass
 
+        if not pos:
+            pos = room.all_spaces.pop()
+
         return pos, facing
 
 class Pillar(StaticObject):

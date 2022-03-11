@@ -2,7 +2,7 @@ from math import sqrt
 import random
 import pygame
 from actor import Actor
-from item import Item
+from item import Item, martialArts
 from staticobject import StaticObject
 from functools import reduce
 from layout import Layout, TextColor
@@ -16,6 +16,11 @@ class ExitState(Enum):
     WON = 4
     WORE_AMULET = 5
 
+class MartialArts(Item):
+    def __init__(self, name, description, damage, damage_type):
+        super().__init__(name, description)
+        self.damage = damage
+        self.damage_type = damage_type
 
 class Amulet:
     def __init__(self, layout: Layout):
@@ -156,20 +161,33 @@ class Amulet:
         return list(actor for actor in self.actors if isinstance(actor, StaticObject) and actor.room == room)
 
     def attack(self, attacker, victim):
+        victim_item = victim.get_wielded()
+        if victim_item is None:
+            victim_item = martialArts
         item = attacker.get_wielded()
-        if item:
-            msg = f"{attacker.pronoun_subject()} {victim.pronoun_object()} with {attacker.wielding()}"
-            if item.hit():
+        if item is None:
+            item = martialArts
+        msg = f"{attacker.pronoun_subject()} {victim.pronoun_object()} with {attacker.wielding()}"
+        if item.hit():
+            if victim_item.can_block():
+                msg += ", but it was blocked."
+                victim_item.attack_with()
+            else:
                 damage = item.roll_damage()
                 victim.health -= damage
                 msg += f" for {damage} damage."
-            else:
-                msg += ", but it missed."
-            self.new_alert(msg)
-            if victim.health <= 0:
-                self.new_alert(f"{victim.name} died.")
-                victim.kill()
-            item.attack_with()
+                if item.is_vampiric():
+                    healing = min(attacker.health + damage, attacker.max_health) - attacker.health
+                    if healing:
+                        attacker.health += healing
+                        msg += f" {attacker.pronoun_subject('gain')} {healing} health."
+        else:
+            msg += ", but it missed."
+        self.new_alert(msg)
+        if victim.health <= 0:
+            self.new_alert(f"{victim.name} died.")
+            victim.kill()
+        item.attack_with()
 
     def kill_non_player(self, actors: list):
         for actor in actors:
@@ -264,7 +282,6 @@ class Amulet:
         if corpses:
             for corpse in corpses:
                 self.actors.remove(corpse)
-            print("Expired corpses:", len(corpses))
 
     def game_loop(self, killEverything=False):
         self.state = ExitState.RUNNING
@@ -278,7 +295,7 @@ class Amulet:
         pygame.time.set_timer(self.animation_event, 250)
         # movement happens on 1/8s timer
         pygame.time.set_timer(self.movement_event, 1000//120)
-        # talking tings talk on 10s timer
+        # talking things talk on 10s timer
         pygame.time.set_timer(self.item_phrase_event, 10000)
         # expire corpses on 30s timer
         pygame.time.set_timer(self.expire_corpse_event, 30 * 1000)
@@ -313,6 +330,7 @@ class Amulet:
                             break
                         elif event.key == pygame.K_PERIOD:
                             playerMoved = True
+                            player.health = min(player.health + 1, player.max_health)
                         elif event.key == pygame.K_LEFT:
                             if player.alive:
                                 self.rotate_player(-1)
@@ -332,7 +350,7 @@ class Amulet:
                         elif event.key == pygame.K_TAB:
                             self.switch_target(player, actors)
                         elif event.key == pygame.K_a:
-                            if player.alive and player.target and player.in_range and player.get_wielded():
+                            if player.alive and player.target and player.in_range:
                                 player.face_player(
                                     player.target.x, player.target.y)
                                 self.attack(player, player.target)
@@ -436,9 +454,6 @@ class Amulet:
 
     def items_speak(self, objects, player):
         for obj in objects:
-            if obj.ontop:
-                print(
-                    f"object position: {obj.getPos()} actor position: {player.getPos()}")
             if obj.ontop and obj.x == player.x and obj.y == player.y:
                 self.new_message(obj.name + ' says, "' + obj.ontop + '"')
             elif obj.phrases:

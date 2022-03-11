@@ -187,6 +187,7 @@ class Actor(StaticObject):
             dist = distance(pos, player_pos)
             return dist < 2.0
         elif behavior == Behavior.CHARGE:
+            dist = distance(pos, player_pos)
             return self.line_of_sight(pos, player_pos, bad_spaces) and dist <= 2.0
         elif behavior == Behavior.DUMMY:
             return False
@@ -254,12 +255,9 @@ class Actor(StaticObject):
             heapq.heappush(heap, (dist, new_pos))
 
         if heap:
-            print ("No path to player for attack, but maybe we can get closer")
-
             dist, new_pos = heapq.heappop(heap)
             ndist = distance(self.pos, player_pos)
             if dist < ndist:
-                print ("Moving from %s to %s" % (self.pos, new_pos))
                 self.move_to(*self.pos, *new_pos)
 
         return False

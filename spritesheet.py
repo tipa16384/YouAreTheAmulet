@@ -12,13 +12,14 @@
 
 import pygame
 import os
+from finder import helper
 
 class SpriteSheet:
 
     def __init__(self, filename):
         """Load the sheet."""
         try:
-            self.sheet = pygame.image.load(os.path.join('images',filename)).convert()
+            self.sheet = pygame.image.load(helper(filename)).convert()
         except pygame.error as e:
             print(f"Unable to load spritesheet image: {filename}")
             raise SystemExit(e)

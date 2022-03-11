@@ -2,16 +2,18 @@ import pygame
 import json
 from amulet import ExitState
 import os
+from finder import helper
 
 json_fn = 'amulet.dat'
 
 
 class Outro:
-    def __init__(self, screen, myfont):
+    def __init__(self, layout, screen, myfont):
         intro_data = json.load(open(json_fn))['outro']
+        self.layout = layout
         self.screen = screen
         self.myfont = myfont
-        self.intro_pic = pygame.image.load(os.path.join('images',intro_data['intro_file_pic']))
+        self.intro_pic = pygame.image.load(helper(intro_data['intro_file_pic']))
         self.titleFont = pygame.font.SysFont(None, 48)
         self.continue_text = self.myfont.render(
             intro_data['press_escape_to_continue'], True, (255, 255, 255))
@@ -61,6 +63,6 @@ class Outro:
             )/2 - self.title_text.get_width()/2, self.screen.get_height()/4 - self.title_text.get_height()/2))
             self.screen.blit(self.continue_text, (self.screen.get_width(
             )/2 - self.continue_text.get_width()/2, self.screen.get_height() - 3 * self.continue_text.get_height()))
-            pygame.display.flip()
+            self.layout.drawscale()
 
         return state

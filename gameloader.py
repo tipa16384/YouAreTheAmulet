@@ -10,6 +10,7 @@ from spritesheet import SpriteSheet
 from item import Item
 import os
 from terraintile import TileType
+from finder import helper
 
 json_fn = 'amulet.dat'
 
@@ -52,17 +53,17 @@ def create_map(amulet):
                           for y in range(froom.height)]
             froom.bad_spaces = set()
             froom.good_spaces = set(all_spaces)
+            froom.all_spaces = all_spaces
             froom.tiled = None
             if 'takeAmulet' in room:
                 froom.takeAmulet = room['takeAmulet']
-                print (f"{froom.name} takes the amulet: {froom.takeAmulet}")
             froom.phrases = [
             ] if not 'phrases' in room or not room['phrases'] else room['phrases'].split('\n')
 
             if 'tiled' in room:
                 froom.tiled = room['tiled']
                 froom.room_sprites = SpriteSheet(froom.tiled['spritesheet'])
-                with open(os.path.join('rooms', froom.tiled['tiles']), "r") as stream:
+                with open(helper(froom.tiled['tiles']), "r") as stream:
                     tiled_room = json.load(stream)
                 froom.height = tiled_room['width']
                 froom.width = tiled_room['height']
@@ -78,6 +79,7 @@ def create_map(amulet):
 
                 all_spaces = list(froom.good_spaces - froom.bad_spaces)
                 froom.good_spaces = set(all_spaces)
+                froom.all_spaces = all_spaces
 
             shuffle(all_spaces)
             floor_room_tiles_map[froom.name] = all_spaces
