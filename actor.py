@@ -43,11 +43,25 @@ class Actor(StaticObject):
         self.target = None
         self.in_range = False
 
-    def get_behavior(self):
+    def get_wielded(self):
         for item in self.inventory:
-            if item.is_wielded() and 'behavior' in item.template:
-                return eval('Behavior.' + item.template['behavior'])
+            if item.can_attack():
+                return item
+        return None
+
+    def get_behavior(self):
+        item = self.get_wielded()
+        if item and 'behavior' in item.template:
+            return eval('Behavior.' + item.template['behavior'])
         return Behavior.MELEE
+
+    def needs_to_wield(self):
+        if not self.get_wielded():
+            for item in self.inventory:
+                if item.can_wield():
+                    item.wield()
+                    return True
+        return False
 
     def getMoving(self):
         return self.moving
@@ -173,24 +187,31 @@ class Actor(StaticObject):
             dist = distance(pos, player_pos)
             return dist < 2.0
         elif behavior == Behavior.CHARGE:
-            return self.line_of_sight(pos, player_pos, bad_spaces) and (pos[0] == player_pos[0] or pos[1] == player_pos[1])
+            return self.line_of_sight(pos, player_pos, bad_spaces) and dist <= 2.0
         elif behavior == Behavior.DUMMY:
             return False
         dist = distance(pos, player_pos)
         return dist > 3.0 and dist <= 4.0
+    
+    def present_tense(self, verb):
+        if verb.endswith('e'):
+            return verb + 's'
+        elif verb.endswith('y'):
+            return verb[:-1] + 'ies'
+        elif verb.endswith('o') or verb.endswith('ch') or verb.endswith('sh') or verb.endswith('x') or verb.endswith('z') or verb.endswith('s'):
+            return verb + 'es'
+        else:
+            return verb + 's'
 
-    def pronoun_subject(self):
-        return 'You attack' if self.is_player else self.name + ' attacks'
+    def pronoun_subject(self, verb='attack'):
+        return 'You ' + verb if self.is_player else self.name + ' ' + self.present_tense(verb)
 
     def pronoun_object(self):
         return 'you' if self.is_player else self.name
 
     def wielding(self):
-        for item in self.inventory:
-            name = str(item)
-            if item.is_wielded():
-                return name
-        return "martial arts"
+        item = self.get_wielded()
+        return str(item) if item else "martial arts"
 
     def pathfind(self, player, bad_spaces):
         "return True if the actor was already in a good spot."
@@ -227,19 +248,19 @@ class Actor(StaticObject):
         heap = list()
         for dx, dy in __facing_deltas__:
             new_pos = (self.pos[0] + dx, self.pos[1] + dy)
-            if not self.in_room(*new_pos):
-                continue
-            if new_pos in bad_spaces:
+            if not self.in_room(*new_pos) or new_pos in bad_spaces:
                 continue
             dist = distance(new_pos, player_pos)
             heapq.heappush(heap, (dist, new_pos))
 
-        print ("No path to player for attack, but we can get closer")
-
         if heap:
+            print ("No path to player for attack, but maybe we can get closer")
+
             dist, new_pos = heapq.heappop(heap)
-            print ("Moving from %s to %s" % (self.pos, new_pos))
-            self.move_to(*self.pos, *new_pos)
+            ndist = distance(self.pos, player_pos)
+            if dist < ndist:
+                print ("Moving from %s to %s" % (self.pos, new_pos))
+                self.move_to(*self.pos, *new_pos)
 
         return False
 

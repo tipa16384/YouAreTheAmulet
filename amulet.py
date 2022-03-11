@@ -8,12 +8,15 @@ from functools import reduce
 from layout import Layout, TextColor
 from enum import Enum
 
+
 class ExitState(Enum):
     RUNNING = 0
     QUIT = 1
     DIED = 3
     WON = 4
     WORE_AMULET = 5
+
+
 class Amulet:
     def __init__(self, layout: Layout):
         self.layout = layout
@@ -25,10 +28,14 @@ class Amulet:
         self.actors = []
         self.end_game_event = pygame.USEREVENT + 3
         self.item_phrase_event = pygame.USEREVENT + 4
+        self.expire_corpse_event = pygame.USEREVENT + 5
+
         self.state = ExitState.RUNNING
 
-        self.new_message("Welcome to You are the Amulet!, an entry to the 7DRL 2022 Challenge")
-        self.new_alert("Follow along at https://chasingdings.com/category/other-games/7drl/")
+        self.new_message(
+            "Welcome to You are the Amulet!, an entry to the 7DRL 2022 Challenge")
+        self.new_alert(
+            "Follow along at https://chasingdings.com/category/other-games/7drl/")
 
     def get_player_room(self):
         for actor in self.actors:
@@ -126,7 +133,15 @@ class Amulet:
         for obj in for_removal:
             self.actors.remove(obj)
         if picked_up_amulet:
-            self.new_alert("Please type 'P' and then 'b' to put on the amulet.")
+            self.new_alert(
+                "Please type 'P' and then 'b' to put on the amulet.")
+    
+    def remove_amulet(self, player):
+        for item in player.inventory:
+            if item.isyendor:
+                player.inventory.remove(item)
+                return True
+        return False
 
     def new_message(self, message):
         self.layout.add_message(message, TextColor.BRIGHT)
@@ -141,12 +156,20 @@ class Amulet:
         return list(actor for actor in self.actors if isinstance(actor, StaticObject) and actor.room == room)
 
     def attack(self, attacker, victim):
-        msg = f"{attacker.pronoun_subject()} {victim.pronoun_object()} with {attacker.wielding()}."
-        victim.health -= 1
-        self.new_alert(msg)
-        if victim.health <= 0:
-            self.new_alert(f"{victim.name} died.")
-            victim.kill()
+        item = attacker.get_wielded()
+        if item:
+            msg = f"{attacker.pronoun_subject()} {victim.pronoun_object()} with {attacker.wielding()}"
+            if item.hit():
+                damage = item.roll_damage()
+                victim.health -= damage
+                msg += f" for {damage} damage."
+            else:
+                msg += ", but it missed."
+            self.new_alert(msg)
+            if victim.health <= 0:
+                self.new_alert(f"{victim.name} died.")
+                victim.kill()
+            item.attack_with()
 
     def kill_non_player(self, actors: list):
         for actor in actors:
@@ -173,12 +196,18 @@ class Amulet:
             elif option == 'T':
                 if not player.target:
                     self.new_alert("You must first target an enemy.")
+                elif item.is_wielded():
+                    self.new_alert(
+                        "You cannot throw something you are wielding.")
                 elif sqrt((player.target.x - player.x)**2 + (player.target.y - player.y)**2) > 4:
                     self.new_alert("You are too far away.")
+                elif len(player.target.inventory) >= 10:
+                    self.new_alert(player.target.name, "is carrying too much.")
                 else:
                     player.inventory.remove(item)
                     player.target.inventory.append(item)
-                    self.new_alert(f"You throw {str(item)} at {player.target.name}.")
+                    self.new_alert(
+                        f"You throw {str(item)} at {player.target.name}.")
                     if item.isyendor:
                         player.setIsPlayer(False)
                         player.target.setIsPlayer(True)
@@ -194,11 +223,13 @@ class Amulet:
                         if pitem.is_wielded():
                             if item != pitem:
                                 pitem.wield()
-                                self.new_alert(f"You are no longer wielding {str(pitem)}.")
+                                self.new_alert(
+                                    f"You are no longer wielding {str(pitem)}.")
                     if item.wield():
                         self.new_alert(f"You are now wielding {str(item)}.")
                     else:
-                        self.new_alert(f"You are no longer wielding {str(item)}")
+                        self.new_alert(
+                            f"You are no longer wielding {str(item)}")
 
     def get_eligible_actors(self, player, actors):
         return list(actor for actor in actors if actor.alive and actor != player)
@@ -212,14 +243,30 @@ class Amulet:
         if player.target is None:
             player.target = eligible_actors[0]
         else:
-            player.target = eligible_actors[(eligible_actors.index(player.target) + 1) % len(eligible_actors)]
+            player.target = eligible_actors[(eligible_actors.index(
+                player.target) + 1) % len(eligible_actors)]
 
     def verify_target(self, player, actors):
         if player.target and (not player.target.alive or player.target not in actors):
             self.new_alert("You have no target.")
             player.target = None
 
-    def game_loop(self, killEverything = False):
+    def expire_weapons(self):
+        for actor in self.actors:
+            if isinstance(actor, Actor):
+                weapons_to_expire = [item for item in actor.inventory if item.quantity < 1]
+                for item in weapons_to_expire:
+                    actor.inventory.remove(item)
+
+    def expire_corpses(self):
+        corpses = list(actor for actor in self.actors if isinstance(
+            actor, Actor) and (not actor.alive or actor.health <= 0))
+        if corpses:
+            for corpse in corpses:
+                self.actors.remove(corpse)
+            print("Expired corpses:", len(corpses))
+
+    def game_loop(self, killEverything=False):
         self.state = ExitState.RUNNING
         playerMoved = False
         waiting_for_selection = None
@@ -227,15 +274,25 @@ class Amulet:
         saving_ani = False
         ani_frame = 0
 
+        # animation happens on 1/4s timer
         pygame.time.set_timer(self.animation_event, 250)
+        # movement happens on 1/8s timer
         pygame.time.set_timer(self.movement_event, 1000//120)
+        # talking tings talk on 10s timer
         pygame.time.set_timer(self.item_phrase_event, 10000)
+        # expire corpses on 30s timer
+        pygame.time.set_timer(self.expire_corpse_event, 30 * 1000)
 
         while self.state == ExitState.RUNNING:
             room = self.get_player_room()
             player = self.get_player()
             actors = self.actors_in_room(room)
             objects = self.objects_in_room(room)
+
+            if room.takeAmulet and self.remove_amulet(player):
+                self.new_message("With a wave of her hand, the Wizard of Yendor takes the Amulet of Yendor from you.")
+                self.new_alert("The Wizard of Yendor says, \"You have done well.\"")
+                self.new_alert("The Wizard of Yendor says, \"Now, come get your reward.\"")
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -244,7 +301,8 @@ class Amulet:
                 elif event.type == pygame.KEYDOWN:
                     try:
                         if waiting_for_selection:
-                            self.handle_inventory(player, waiting_for_selection, event.key)
+                            self.handle_inventory(
+                                player, waiting_for_selection, event.key)
                             waiting_for_selection = False
                             playerMoved = True
                             continue
@@ -274,12 +332,14 @@ class Amulet:
                         elif event.key == pygame.K_TAB:
                             self.switch_target(player, actors)
                         elif event.key == pygame.K_a:
-                            if player.alive and player.target and player.in_range:
-                                player.face_player(player.target.x, player.target.y)
+                            if player.alive and player.target and player.in_range and player.get_wielded():
+                                player.face_player(
+                                    player.target.x, player.target.y)
                                 self.attack(player, player.target)
                                 playerMoved = True
                         elif event.key == pygame.K_p and event.mod & pygame.KMOD_SHIFT:
-                            self.new_alert("Put on or take off what? (type letter of item)")
+                            self.new_alert(
+                                "Put on or take off what? (type letter of item)")
                             waiting_for_selection = 'P'
                             break
                         elif event.key == pygame.K_t and event.mod & pygame.KMOD_SHIFT:
@@ -287,7 +347,8 @@ class Amulet:
                             waiting_for_selection = 'T'
                             break
                         elif event.key == pygame.K_w and event.mod & pygame.KMOD_SHIFT:
-                            self.new_alert("Wield or unwield what? (type letter of item)")
+                            self.new_alert(
+                                "Wield or unwield what? (type letter of item)")
                             waiting_for_selection = 'W'
                             break
                         elif event.key == pygame.K_g:
@@ -298,26 +359,33 @@ class Amulet:
                             if player.alive:
                                 self.kill_non_player(actors)
                         elif event.key == pygame.K_PRINTSCREEN:
-                            pygame.image.save(self.layout.screen, "yata-screenshot.png")
-                            self.layout.add_message("Screenshot saved to yata-screenshot.png", TextColor.COOL)
+                            pygame.image.save(
+                                self.layout.screen, "yata-screenshot.png")
+                            self.layout.add_message(
+                                "Screenshot saved to yata-screenshot.png", TextColor.COOL)
                     except AttributeError:
                         pass
+                elif event.type == self.expire_corpse_event:
+                    self.expire_corpses()
                 elif event.type == self.item_phrase_event:
                     self.items_speak(objects, player)
                 elif event.type == self.end_game_event:
                     self.state = ExitState.DIED if not player.alive else ExitState.WON
                 elif event.type == self.animation_event:
+                    self.expire_weapons()
                     for actor in (a for a in actors if a.room == room and a.alive):
                         actor.animate()
                         if actor != player and actor.in_range:
                             actor.face_player(player.x, player.y)
                     if saving_ani:
-                        pygame.image.save(self.layout.screen, f"animation-{ani_frame:04}.png")
+                        pygame.image.save(self.layout.screen,
+                                          f"animation-{ani_frame:04}.png")
                         ani_frame += 1
                         if ani_frame == 4:
                             saving_ani = False
                             ani_frame = 0
-                            self.layout.add_message("Finished recording animation", TextColor.COOL)
+                            self.layout.add_message(
+                                "Finished recording animation", TextColor.COOL)
                 elif event.type == self.movement_event:
                     for actor in [a for a in actors if a.getMoving() and a.alive]:
                         actor.update()
@@ -327,12 +395,16 @@ class Amulet:
                         bad_spaces = room.bad_spaces | bad_spaces
                         if actor.getIsPlayer():
                             if actor.target:
-                                actor.in_range = actor.good_pos(actor.getPos(), actor.target.getPos(), bad_spaces)
+                                actor.in_range = actor.good_pos(
+                                    actor.getPos(), actor.target.getPos(), bad_spaces)
                                 #print (f"{actor.name} in range: {actor.in_range}")
                             else:
                                 actor.in_range = False
                                 #print (f"No target")
                         elif playerMoved:
+                            if not actor.getIsPlayer() and actor.needs_to_wield():
+                                self.new_alert(f"{actor.name} is now wielding {str(actor.get_wielded())}")
+                                continue
                             actor.in_range = actor.pathfind(player, bad_spaces)
                             actor.target = player
                             if actor.in_range:
@@ -358,18 +430,20 @@ class Amulet:
         pygame.time.set_timer(self.movement_event, 0)
         pygame.time.set_timer(self.item_phrase_event, 0)
         pygame.time.set_timer(self.end_game_event, 0)
+        pygame.time.set_timer(self.expire_corpse_event, 0)
 
         return self.state
 
     def items_speak(self, objects, player):
-        random.seed()
         for obj in objects:
             if obj.ontop:
-                print (f"object position: {obj.getPos()} actor position: {player.getPos()}")
+                print(
+                    f"object position: {obj.getPos()} actor position: {player.getPos()}")
             if obj.ontop and obj.x == player.x and obj.y == player.y:
                 self.new_message(obj.name + ' says, "' + obj.ontop + '"')
             elif obj.phrases:
-                self.new_message(obj.name + ' calls out, "' + random.choice(obj.phrases) + '"')
+                self.new_message(obj.name + ' calls out, "' +
+                                 random.choice(obj.phrases) + '"')
 
     def draw(self):
         room = self.get_player_room()
@@ -379,7 +453,8 @@ class Amulet:
         if room.phrases:
             y = 5
             for phrase in room.phrases:
-                message = self.myfont.render(phrase, True, self.layout.get_text_color(TextColor.BRIGHT))
+                message = self.myfont.render(
+                    phrase, True, self.layout.get_text_color(TextColor.BRIGHT))
                 x = (self.screen.get_width() - message.get_width()) // 2
                 self.screen.blit(message, (x, y))
                 y += self.myfont.get_linesize()

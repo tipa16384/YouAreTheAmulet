@@ -56,24 +56,26 @@ class Layout:
     def draw_stats(self, amulet):
         player = amulet.get_player()
         lines = list()
-        lines.append((TextColor.BRIGHT, f"You are {player.name}"))
-        lines.append((TextColor.NORMAL, ""))
-        lines.append((TextColor.NORMAL, f"Health: {player.health}/{player.max_health}"))
-        lines.append((TextColor.NORMAL, ""))
-        lines.append((TextColor.COOL, "Inventory"))
-        lines.append((TextColor.NORMAL, ""))
 
-        for index, item in enumerate(player.inventory):
-            lines.append((TextColor.NORMAL, chr(ord('a')+index) + ") " + str(item)))
+        if player:
+            lines.append((TextColor.BRIGHT, f"You are {player.name}"))
+            lines.append((TextColor.NORMAL, ""))
+            lines.append((TextColor.NORMAL, f"Health: {player.health}/{player.max_health}"))
+            lines.append((TextColor.NORMAL, ""))
+            lines.append((TextColor.COOL, "Inventory"))
+            lines.append((TextColor.NORMAL, ""))
 
-        lines.append((TextColor.NORMAL, ""))
-        lines.append((TextColor.COOL, "Target"))
-        lines.append((TextColor.NORMAL, ""))
+            for index, item in enumerate(player.inventory):
+                lines.append((TextColor.NORMAL, chr(ord('a')+index) + ") " + str(item)))
 
-        if not player.target:
-            lines.append((TextColor.NORMAL, "Nothing Targeted"))
-        else:
-            lines.append((TextColor.NORMAL, f"{player.target.name} at {int(player.target.x)}, {int(player.target.y)}"))
+            lines.append((TextColor.NORMAL, ""))
+            lines.append((TextColor.COOL, "Target"))
+            lines.append((TextColor.NORMAL, ""))
+
+            if not player.target:
+                lines.append((TextColor.NORMAL, "Nothing Targeted"))
+            else:
+                lines.append((TextColor.NORMAL, f"{player.target.name} at {int(player.target.x)}, {int(player.target.y)}"))
 
         lines.append((TextColor.NORMAL, ""))
         lines.append((TextColor.COOL, "Commands"))

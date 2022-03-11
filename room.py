@@ -1,4 +1,3 @@
-import random
 from terraintile import TileType, TerrainTileFactory
 from spritesheet import SpriteSheet
 from staticobject import HasPosition, StaticObject
@@ -12,7 +11,6 @@ class Room:
         self.height = height
         self.floor_type = floor_type
         self.floor_tile = TerrainTileFactory.create_terrain_tile(floor_type)
-        self.seed = random.randint(0, 1000000)
         self.exit_ns = SpriteSheet("portals.png").image_at(
             (15, 9, 32, 47), colorkey=-1)
         self.exit_ew = SpriteSheet("portals.png").image_at(
@@ -22,6 +20,7 @@ class Room:
         self.layers = None
         self.tiled = None
         self.phrases = None
+        self.takeAmulet = False
 
     def screen_coords(self, x, y):
         sx = (x+y)*self.floor_tile.width//2
@@ -68,7 +67,7 @@ class Room:
 
         exits_to_draw = [connection for exit in exits for connection in exit.connections if connection[0] == self]
 
-        random.seed(self.seed)
+        #random.seed(self.seed)
 
         random_image = self.floor_tile_cache[max(layer)]
 
@@ -165,7 +164,7 @@ class Room:
         dx = (screen_width - maxx) // 2
         dy = (screen_height - maxy) // 2
 
-        random.seed(self.seed)
+        #random.seed(self.seed)
 
         ex = self.width // 2
         ey = self.height // 2

@@ -74,7 +74,7 @@
          "y":0
         }],
  "nextlayerid":4,
- "nextobjectid":5,
+ "nextobjectid":7,
  "orientation":"isometric",
  "renderorder":"right-down",
  "tiledversion":"1.8.2",
@@ -82,7 +82,7 @@
  "tilesets":[
         {
          "firstgid":1,
-         "source":"..\/kenneytiles.tsx"
+         "source":"..\/..\/kenneytiles.tsx"
         }],
  "tilewidth":64,
  "type":"map",

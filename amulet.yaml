@@ -61,22 +61,36 @@ items:
   itemType: WAND
   behavior: MAGIC
   canWield: True
+  damage: 2d4
+  uses: 1d4
+  hitchance: 100
 - item: &longbow longbow
   itemType: BOW
   behavior: ARCHER
   canWield: True
+  damage: 1d6
+  uses: 1d8
+  hitchance: 25
 - item: &broadsword broadsword
   itemType: SWORD
   behavior: MELEE
   canWield: True
+  damage: 1d8
+  uses: 2d6
+  hitchance: 50
 - item: &lance knight's lance
   itemType: POLEARM
   behavior: CHARGE
   canWield: True
+  damage: 1d10
+  hitchance: 33
 - item: &saber saber
   itemType: SWORD
   behavior: MELEE
   canWield: True
+  damage: 1d6
+  uses: 3d10
+  hitchance: 50
 - item: &yendor Amulet of Yendor
   itemType: NECKLACE
   canWield: False
@@ -88,6 +102,9 @@ items:
   itemType: NECKLACE
   canWield: True
   behavior: DUMMY
+  damage: 0
+  uses: 1000
+  hitchance: 0
 library:
 - actor: &ritz Ritz
   spritesheet: Ritz1.png
@@ -219,7 +236,7 @@ floors:
       width: 10
       height: 1
       tileType: GRASS
-    - room: &rm0201 New Dungeon
+    - room: &rm0201 Wizard Room
       tileType: ROOM
       tiled:
         tiles: room0201.tmj
@@ -234,6 +251,7 @@ floors:
         offset: 0
       width: 10
       height: 10
+      takeAmulet: True
     - room: &rm0202 Training Room
       tileType: ROOM
       tiled:
@@ -254,20 +272,6 @@ floors:
         Approach them until their space turns GREEN, and then
         press 'a' to attack with your equipped weapon!""
     exits:
-    - exit:
-      - room: *rm0101
-        x: 3
-        y: -1
-      - room: *rm0102
-        x: 4
-        y: *rm0102height
-    - exit:
-      - room: *rm0103
-        x: -1
-        y: 0
-      - room: *rm0102
-        x: *rm0102width
-        y: 2
     actors:
       - actor: *ritz
         isplayer: True
@@ -278,7 +282,6 @@ floors:
         room: *rm0202
         inventory:
         - item: *nomove
-        - item: *firewand
       - actor: *wizard
         room: *rm0201
         inventory:

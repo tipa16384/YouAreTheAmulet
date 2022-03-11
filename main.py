@@ -49,6 +49,7 @@ if __name__ == '__main__':
                 pos, facing = player.get_initial_space(room, True)
                 player.setPos(pos)
                 player.setFacing(facing)
+                print (f"Player is in {player.room.name} and room takes amulet {room.takeAmulet}")
                 break
     
         state = amulet.game_loop(True)

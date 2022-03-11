@@ -1,5 +1,5 @@
 from enum import Enum
-
+from random import randint
 class ItemType(Enum):
     WAND = 1
     SWORD = 2
@@ -30,6 +30,28 @@ class Item:
         self.quantity = 1
         self.item_type = eval('ItemType.' + template['itemType'])
         self.cursed_state_known = False
+        self.hitchance = 0
+        self.damage = "1"
+
+    def can_attack(self):
+        return self.is_wielded() and self.quantity > 0
+    
+    def attack_with(self):
+        if self.can_attack():
+            self.quantity -= 1
+    
+    def hit(self):
+        return randint(1, 100) <= self.hitchance
+    
+    def roll_damage(self):
+        return self.rolldice(self.damage)
+
+    def rolldice(self, dice: str):
+        if 'd' in dice:
+            n, s = dice.split('d')
+            return sum(randint(1, int(s)) for _ in range(int(n)))
+        else:
+            return int(dice)
 
     def can_wield(self):
         return 'canWield' in self.template and self.template['canWield']
@@ -55,10 +77,7 @@ class Item:
     def __str__(self):
         name = self.template['item']
 
-        if self.quantity != 1:
-            name = f"{self.quantity} {name}s"
-        else:
-            name = ('an ' if name[0] in 'aeiouAEIOU' else 'a ') + name
+        name = ('an ' if name[0] in 'aeiouAEIOU' else 'a ') + name
         
         if not self.identified:
             name += '?'
@@ -74,6 +93,9 @@ class Item:
         
         if self.adorned:
             name += '&'
+        
+        if self.can_wield():
+            name += f" ({self.quantity})"
 
         return name
 
