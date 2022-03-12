@@ -72,13 +72,20 @@ items:
   damage: 6d6
   uses: 1d4
   hitchance: 100
+- item: &trainingbow shortbow
+  itemType: BOW
+  behavior: ARCHER
+  canWield: True
+  damage: 1
+  uses: 1d4
+  hitchance: 100
 - item: &longbow longbow
   itemType: BOW
   behavior: ARCHER
   canWield: True
   damage: 1d6
   uses: 2d8
-  hitchance: 25
+  hitchance: 40
 - item: &broadsword broadsword
   itemType: SWORD
   behavior: MELEE
@@ -113,16 +120,16 @@ items:
   itemType: POLEARM
   behavior: CHARGE
   canWield: True
-  damage: 1d10
+  damage: 2d10
   uses: 2d4
-  hitchance: 33
+  hitchance: 40
 - item: &saber saber
   itemType: SWORD
   behavior: MELEE
   canWield: True
   damage: 1d6
   uses: 4d10
-  hitchance: 50
+  hitchance: 75
 - item: &yendor Amulet of Yendor
   itemType: NECKLACE
   canWield: False
@@ -325,7 +332,26 @@ floors:
       phrases: |-
         The Frog Knight says, "Target Sprite with your TAB key!
         Approach them until their space turns GREEN, and then
-        press 'a' to attack with your equipped weapon!""
+        press 'a' to attack with your equipped weapon!"
+    - room: &rm0203 Training Room 2
+      tileType: ROOM
+      tiled:
+        tiles: training2.tmj
+        spritesheet: iso-64x64-outside.png
+        tilewidth: 64
+        tileheight: 64
+        displayheight: 32
+        tilecount: 160
+        columns: 10
+        firstgid: 1
+        lift: 0
+        offset: 1
+      width: 8
+      height: 8
+      phrases: |-
+        The Frog Knight continues, "You cannot kill the Sprite!
+        Target the Archer, then 'T' and 'c' to throw the Amulet
+        Then target the Sprite with Archer and defeat her!"
     - room: &rm0300 Room 0
       tileType: ROOM
       tiled:
@@ -737,6 +763,11 @@ floors:
         - item: *lance
       - actor: *sprite
         isplayer: False
+        room: *rm0203
+        inventory:
+        - item: *dagger
+      - actor: *sprite
+        isplayer: False
         room: *rm0300
         inventory:
         - item: *dagger
@@ -765,6 +796,11 @@ floors:
         room: *rm0302
         inventory:
         - item: *longbow
+      - actor: *archer
+        isplayer: False
+        room: *rm0203
+        inventory:
+        - item: *trainingbow
       - actor: *sprite
         isplayer: False
         room: *rm0302
@@ -1247,8 +1283,11 @@ floors:
         position: [5,5]
       - item: *frog
         room: *rm0202
+      - item: *frog
+        room: *rm0203
 roadmap:
   - *rm0202
+  - *rm0203
   - *rm0300
   - *rm0301
   - *rm0302
