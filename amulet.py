@@ -139,7 +139,7 @@ class Amulet:
             self.actors.remove(obj)
         if picked_up_amulet:
             self.new_alert(
-                "Please type 'P' and then 'b' to put on the amulet.")
+                "Please type 'P' and then 'c' to put on the amulet.")
     
     def remove_amulet(self, player):
         for item in player.inventory:
@@ -169,22 +169,23 @@ class Amulet:
             item = martialArts
         msg = f"{attacker.pronoun_subject()} {victim.pronoun_object()} with {attacker.wielding()}"
         if item.hit():
-            if victim_item.can_block():
+            blocker = victim.get_blocker()
+            if blocker:
                 msg += ", but it was blocked."
-                victim_item.attack_with()
+                blocker.attack_with()
             else:
                 damage = item.roll_damage()
-                victim.health -= damage
+                victim.set_health(victim.get_health() - damage)
                 msg += f" for {damage} damage."
                 if item.is_vampiric():
-                    healing = min(attacker.health + damage, attacker.max_health) - attacker.health
+                    healing = min(attacker.get_health() + damage, attacker.get_max_health()) - attacker.get_health()
                     if healing:
-                        attacker.health += healing
+                        attacker.set_health(attacker.get_health() + healing)
                         msg += f" {attacker.pronoun_subject('gain')} {healing} health."
         else:
             msg += ", but it missed."
         self.new_alert(msg)
-        if victim.health <= 0:
+        if victim.get_health() <= 0:
             self.new_alert(f"{victim.name} died.")
             victim.kill()
         item.attack_with()
@@ -278,7 +279,7 @@ class Amulet:
 
     def expire_corpses(self):
         corpses = list(actor for actor in self.actors if isinstance(
-            actor, Actor) and (not actor.alive or actor.health <= 0))
+            actor, Actor) and (not actor.alive or actor.get_health() <= 0))
         if corpses:
             for corpse in corpses:
                 self.actors.remove(corpse)
@@ -302,6 +303,11 @@ class Amulet:
 
         while self.state == ExitState.RUNNING:
             room = self.get_player_room()
+
+            if not room:
+                self.state = ExitState.QUIT
+                break
+
             player = self.get_player()
             actors = self.actors_in_room(room)
             objects = self.objects_in_room(room)
@@ -330,7 +336,7 @@ class Amulet:
                             break
                         elif event.key == pygame.K_PERIOD:
                             playerMoved = True
-                            player.health = min(player.health + 1, player.max_health)
+                            player.set_health(min(player.get_health() + 1, player.get_max_health()))
                         elif event.key == pygame.K_LEFT:
                             if player.alive:
                                 self.rotate_player(-1)
@@ -431,7 +437,7 @@ class Amulet:
 
             self.verify_target(player, actors)
 
-            if not waiting_for_godot and player.health <= 0:
+            if not waiting_for_godot and player.get_health() <= 0:
                 player.kill()
                 self.new_message("You died.")
                 pygame.time.set_timer(self.end_game_event, 5000)
@@ -462,14 +468,15 @@ class Amulet:
 
     def draw(self):
         room = self.get_player_room()
-        objects = self.objects_in_room(room)
-        room.draw(self.screen, objects, self.get_floors()[0].exits)
+        if room:
+            objects = self.objects_in_room(room)
+            room.draw(self.screen, objects, self.get_floors()[0].exits)
 
-        if room.phrases:
-            y = 5
-            for phrase in room.phrases:
-                message = self.myfont.render(
-                    phrase, True, self.layout.get_text_color(TextColor.BRIGHT))
-                x = (self.screen.get_width() - message.get_width()) // 2
-                self.screen.blit(message, (x, y))
-                y += self.myfont.get_linesize()
+            if room.phrases:
+                y = 5
+                for phrase in room.phrases:
+                    message = self.myfont.render(
+                        phrase, True, self.layout.get_text_color(TextColor.BRIGHT))
+                    x = (self.screen.get_width() - message.get_width()) // 2
+                    self.screen.blit(message, (x, y))
+                    y += self.myfont.get_linesize()

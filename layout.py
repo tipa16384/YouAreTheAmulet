@@ -76,7 +76,7 @@ class Layout:
         if player:
             lines.append((TextColor.BRIGHT, f"You are {player.name}"))
             lines.append((TextColor.NORMAL, ""))
-            lines.append((TextColor.NORMAL, f"Health: {player.health}/{player.max_health}"))
+            lines.append((TextColor.NORMAL, f"Health: {player.get_health()}/{player.get_max_health()}"))
             lines.append((TextColor.NORMAL, ""))
             lines.append((TextColor.COOL, "Inventory"))
             lines.append((TextColor.NORMAL, ""))

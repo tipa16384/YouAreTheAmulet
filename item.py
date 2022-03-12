@@ -33,6 +33,8 @@ class Item:
         self.cursed_state_known = False
         self.hitchance = 0
         self.damage = "1"
+        self.maxHealth = template['maxHealth'] if 'maxHealth' in template else 0
+        self.health = self.maxHealth
 
     def is_vampiric(self):
         return 'vampiric' in self.template and self.template['vampiric']
@@ -44,7 +46,7 @@ class Item:
         return self.is_wielded() and self.quantity > 0
     
     def attack_with(self):
-        if self.can_attack():
+        if self.quantity > 0:
             self.quantity -= 1
     
     def hit(self):

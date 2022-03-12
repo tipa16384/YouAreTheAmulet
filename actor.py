@@ -43,6 +43,31 @@ class Actor(StaticObject):
         self.target = None
         self.in_range = False
 
+    def get_blocker(self):
+        for item in self.inventory:
+            if item.can_block():
+                return item
+        return None
+
+    def get_max_health(self):
+        for item in self.inventory:
+            if item.maxHealth:
+                return item.maxHealth
+        return self.max_health
+    
+    def get_health(self):
+        for item in self.inventory:
+            if item.maxHealth:
+                return item.health
+        return self.health
+    
+    def set_health(self, health):
+        for item in self.inventory:
+            if item.maxHealth:
+                item.health = health
+                return
+        self.health = health
+
     def get_wielded(self):
         for item in self.inventory:
             if item.can_attack():
@@ -127,7 +152,7 @@ class Actor(StaticObject):
     
     def kill(self):
         self.alive = False
-        self.health = 0
+        self.set_health(0)
 
     def update(self):
         if self.moving:
