@@ -351,7 +351,9 @@ floors:
       phrases: |-
         The Frog Knight continues, "You cannot kill the Sprite!
         Target the Archer, then 'T' and 'c' to throw the Amulet
-        Then target the Sprite with Archer and defeat her!"
+        Then target the Sprite with Archer and defeat her!
+        Throw the Amulet back to Ritz, then kill the Archer.
+        Press 'K' to exit the tutorial and continue to the game."
     - room: &rm0300 Room 0
       tileType: ROOM
       tiled:

@@ -361,16 +361,16 @@ class Amulet:
                                     player.target.x, player.target.y)
                                 self.attack(player, player.target)
                                 playerMoved = True
-                        elif event.key == pygame.K_p and event.mod & pygame.KMOD_SHIFT:
+                        elif event.key == pygame.K_p:
                             self.new_alert(
                                 "Put on or take off what? (type letter of item)")
                             waiting_for_selection = 'P'
                             break
-                        elif event.key == pygame.K_t and event.mod & pygame.KMOD_SHIFT:
+                        elif event.key == pygame.K_t:
                             self.new_alert("Toss what? (type letter of item)")
                             waiting_for_selection = 'T'
                             break
-                        elif event.key == pygame.K_w and event.mod & pygame.KMOD_SHIFT:
+                        elif event.key == pygame.K_w:
                             self.new_alert(
                                 "Wield or unwield what? (type letter of item)")
                             waiting_for_selection = 'W'
@@ -379,7 +379,7 @@ class Amulet:
                             if player.alive:
                                 self.pick_up_items(player, objects)
                                 playerMoved = True
-                        elif event.key == pygame.K_k and event.mod & pygame.KMOD_SHIFT:
+                        elif event.key == pygame.K_k:
                             if player.alive:
                                 self.kill_non_player(actors)
                         elif event.key == pygame.K_PRINTSCREEN:
