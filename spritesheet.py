@@ -27,7 +27,6 @@ class SpriteSheet:
     def __init__(self, filename):
         """Load the sheet."""
         try:
-            print (f"Opening sheet {filename}")
             self.sheet = pygame.image.load(helper(filename)).convert()
         except pygame.error as e:
             print(f"Unable to load spritesheet image: {filename}")

@@ -9,21 +9,29 @@ from layout import Layout
 from plotro import Plotro
 from finder import helper
 
+def init_screen():
+    try:
+        pygame.mixer.init()
+        pygame.mixer.music.load(helper("epic-heart-2-min-8643.mp3"))
+        pygame.mixer.music.play()
+    except:
+        # No music! Well, that's okay.
+        pass
+
 def exit():
     print("Thanks for playing!")
     pygame.quit()
     sys.exit()
 
 if __name__ == '__main__':
-    print ("Loading...")
     layout = Layout()
+    init_screen()
 
-    print (f"Loading map...")
+    intro = Intro(layout, layout.screen, layout.font)
+    intro.game_loop()
 
     amulet = Amulet(layout)
     create_map(amulet)
-
-    print (f"Loading intro...")
     state = amulet.game_loop()
 
     if state == ExitState.QUIT:
