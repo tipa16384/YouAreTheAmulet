@@ -27,6 +27,7 @@ class Item:
         self.identified = template['identified'] if 'identified' in template else False
         self.isyendor = template['isAmuletOfYendor'] if 'isAmuletOfYendor' in template else False
         self.cursed = template['cursed'] if 'cursed' in template else False
+        self.sacred = template['sacred'] if 'sacred' in template else False
         self.can_put_on = template['canPutOn'] if 'canPutOn' in template else False
         self.quantity = 1
         self.item_type = eval('ItemType.' + template['itemType'])
@@ -40,13 +41,13 @@ class Item:
         return 'vampiric' in self.template and self.template['vampiric']
 
     def can_block(self):
-        return 'blocks' in self.template and self.template['blocks'] and self.quantity > 0
+        return 'blocks' in self.template and self.template['blocks'] and (self.sacred or self.quantity > 0)
 
     def can_attack(self):
-        return self.is_wielded() and self.quantity > 0
+        return self.is_wielded() and (self.sacred or self.quantity > 0)
     
     def attack_with(self):
-        if self.quantity > 0:
+        if not self.sacred and self.quantity > 0:
             self.quantity -= 1
     
     def hit(self):
@@ -86,6 +87,9 @@ class Item:
     def __str__(self):
         name = self.template['item']
 
+        if self.sacred:
+            name = 'sacred ' + name
+
         name = ('an ' if name[0] in 'aeiouAEIOU' else 'a ') + name
         
         if not self.identified:
@@ -103,7 +107,7 @@ class Item:
         if self.adorned:
             name += '&'
         
-        if self.can_wield():
+        if self.can_wield() and not self.sacred:
             name += f" ({self.quantity})"
 
         return name

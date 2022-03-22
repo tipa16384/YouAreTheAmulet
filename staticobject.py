@@ -1,4 +1,4 @@
-from spritesheet import SpriteSheet
+from spritesheet import get_sprite_sheet
 from math import floor
 class HasPosition:
     def __init__(self, pos):
@@ -72,7 +72,7 @@ class StaticObject(HasPosition):
 
 class Pillar(StaticObject):
     def __init__(self, pos):
-        sprites = SpriteSheet(
+        sprites = get_sprite_sheet(
             "iso-64x64-outside.png").load_strip((202, 811, 41, 71), 1, colorkey=-1)
         super().__init__(sprites, None, pos)
         self.sprite = sprites[0]

@@ -7,13 +7,7 @@ from outro import Outro
 from wintro import Wintro
 from layout import Layout
 from plotro import Plotro
-import os
 from finder import helper
-
-def init_screen():
-    pygame.mixer.init()
-    pygame.mixer.music.load(helper("epic-heart-2-min-8643.mp3"))
-    pygame.mixer.music.play()
 
 def exit():
     print("Thanks for playing!")
@@ -21,14 +15,15 @@ def exit():
     sys.exit()
 
 if __name__ == '__main__':
+    print ("Loading...")
     layout = Layout()
-    init_screen()
 
-    intro = Intro(layout, layout.screen, layout.font)
-    intro.game_loop()
+    print (f"Loading map...")
 
     amulet = Amulet(layout)
     create_map(amulet)
+
+    print (f"Loading intro...")
     state = amulet.game_loop()
 
     if state == ExitState.QUIT:

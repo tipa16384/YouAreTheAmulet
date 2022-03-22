@@ -11,21 +11,33 @@
 # - Updated from Python 2 -> Python 3.
 
 import pygame
-import os
 from finder import helper
+from functools import lru_cache
+
+sprite_sheet_dict = {}
+
+def get_sprite_sheet(name):
+    if name not in sprite_sheet_dict:
+        sprite_sheet_dict[name] = SpriteSheet(name)
+    return sprite_sheet_dict[name]
+
 
 class SpriteSheet:
 
     def __init__(self, filename):
         """Load the sheet."""
         try:
+            print (f"Opening sheet {filename}")
             self.sheet = pygame.image.load(helper(filename)).convert()
         except pygame.error as e:
             print(f"Unable to load spritesheet image: {filename}")
             raise SystemExit(e)
 
-
     def image_at(self, rectangle, colorkey = None):
+        return self.__image_at__(tuple(rectangle), colorkey)
+
+    @lru_cache(maxsize=None)
+    def __image_at__(self, rectangle, colorkey):
         """Load a specific image from a specific rectangle."""
         # Loads image from x, y, x+offset, y+offset.
         rect = pygame.Rect(rectangle)
@@ -39,6 +51,7 @@ class SpriteSheet:
 
     def images_at(self, rects, colorkey = None):
         """Load a whole bunch of images and return them as a list."""
+        # print (self.__image_at__.cache_info())
         return [self.image_at(xrect, colorkey) for xrect in rects]
 
     def load_strip(self, rect, image_count, colorkey = None):

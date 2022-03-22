@@ -6,7 +6,7 @@ from random import shuffle
 from actor import Actor
 from staticobject import StaticObject
 import pygame
-from spritesheet import SpriteSheet
+from spritesheet import get_sprite_sheet
 from item import Item
 import os
 from terraintile import TileType
@@ -62,7 +62,7 @@ def create_map(amulet):
 
             if 'tiled' in room:
                 froom.tiled = room['tiled']
-                froom.room_sprites = SpriteSheet(froom.tiled['spritesheet'])
+                froom.room_sprites = get_sprite_sheet(froom.tiled['spritesheet'])
                 with open(helper(froom.tiled['tiles']), "r") as stream:
                     tiled_room = json.load(stream)
                 froom.height = tiled_room['width']
@@ -110,7 +110,7 @@ def load_items(amulet, floor_yaml, floor_room_map):
         room_name = item['room'] if 'room' in item else 'Entry Room'
         template = amulet.library[item['item']]
         sprite_rect = template['sprite']
-        sprites = SpriteSheet(template['spritesheet']).load_strip(
+        sprites = get_sprite_sheet(template['spritesheet']).load_strip(
             sprite_rect, 1, colorkey=-1)
         room = floor_room_map[room_name]
 
@@ -141,7 +141,7 @@ def load_actors(amulet, floor_yaml, floor_room_map, floor_room_tiles_map):
 
         template = amulet.library[actor['actor']]
 
-        sprites = SpriteSheet(template['spritesheet'])
+        sprites = get_sprite_sheet(template['spritesheet'])
         left = sprites.images_at(template['west'], colorkey=-1)
         if 'south' in template:
             down = sprites.images_at(template['south'], colorkey=-1)

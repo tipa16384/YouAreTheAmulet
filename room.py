@@ -1,5 +1,5 @@
 from terraintile import TileType, TerrainTileFactory
-from spritesheet import SpriteSheet
+from spritesheet import get_sprite_sheet
 from staticobject import HasPosition, StaticObject
 import pygame
 
@@ -11,9 +11,9 @@ class Room:
         self.height = height
         self.floor_type = floor_type
         self.floor_tile = TerrainTileFactory.create_terrain_tile(floor_type)
-        self.exit_ns = SpriteSheet("portals.png").image_at(
+        self.exit_ns = get_sprite_sheet("portals.png").image_at(
             (15, 9, 32, 47), colorkey=-1)
-        self.exit_ew = SpriteSheet("portals.png").image_at(
+        self.exit_ew = get_sprite_sheet("portals.png").image_at(
             (54, 9, 32, 48), colorkey=-1)
         self.name = "Room"
         self.floor_tile_cache = dict()

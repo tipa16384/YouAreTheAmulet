@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from spritesheet import SpriteSheet
+from spritesheet import get_sprite_sheet
 import random
 from enum import Enum
 
@@ -35,7 +35,7 @@ class TerrainTile:
 class OutsideTile(TerrainTile):
     def __init__(self):
         super().__init__(64, 64, 32)
-        outside_64_sprites = SpriteSheet('iso-64x64-outside.png')
+        outside_64_sprites = get_sprite_sheet('iso-64x64-outside.png')
         self.images = outside_64_sprites.load_strip((64, 448, 64, 64), 9, colorkey=-1)
         self.images += outside_64_sprites.load_strip((0, 384, 64, 64), 6, colorkey=-1)
     
@@ -47,7 +47,7 @@ class OutsideTile(TerrainTile):
 class GrassTile(TerrainTile):
     def __init__(self):
         super().__init__(64, 51, 32)
-        outside_64_sprites = SpriteSheet('iso-64x64-outside.png')
+        outside_64_sprites = get_sprite_sheet('iso-64x64-outside.png')
         self.images = [outside_64_sprites.image_at((256, 718, 64, 51), colorkey=-1)]
     
     def choose_random_image(self):
@@ -56,7 +56,7 @@ class GrassTile(TerrainTile):
 class RoomTile(TerrainTile):
     def __init__(self):
         super().__init__(64, 64, 32)
-        inside_sprites = SpriteSheet('iso-64x64-building_3.png')
+        inside_sprites = get_sprite_sheet('iso-64x64-building_3.png')
         self.images = [inside_sprites.image_at((0, 0, 64, 64), colorkey=-1)]
     
     def choose_random_image(self):

@@ -77,8 +77,9 @@ items:
   behavior: ARCHER
   canWield: True
   damage: 1
-  uses: 1d4
+  uses: 100
   hitchance: 100
+  sacred: True
 - item: &longbow longbow
   itemType: BOW
   behavior: ARCHER
@@ -130,6 +131,7 @@ items:
   damage: 1d6
   uses: 4d10
   hitchance: 75
+  sacred: True
 - item: &yendor Amulet of Yendor
   itemType: NECKLACE
   canWield: False
