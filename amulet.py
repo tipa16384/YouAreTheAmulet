@@ -283,6 +283,15 @@ class Amulet:
         if corpses:
             for corpse in corpses:
                 self.actors.remove(corpse)
+    
+    def dump_map(self):
+        for room in self.floors[0].rooms:
+            filename = f"{room.name}.png"
+            self.layout.clear()
+            self.layout.game_screen.fill(self.layout.bg_color)
+            self.draw(room, True)
+            # save game_screen to file
+            pygame.image.save(self.layout.game_screen, filename)
 
     def game_loop(self, killEverything=False):
         self.state = ExitState.RUNNING
@@ -466,17 +475,21 @@ class Amulet:
                 self.new_message(obj.name + ' calls out, "' +
                                  random.choice(obj.phrases) + '"')
 
-    def draw(self):
-        room = self.get_player_room()
-        if room:
-            objects = self.objects_in_room(room)
-            room.draw(self.screen, objects, self.get_floors()[0].exits)
+    def draw(self, room=None, dump=False):
+        if not room: room = self.get_player_room()
 
-            if room.phrases:
-                y = 5
-                for phrase in room.phrases:
-                    message = self.myfont.render(
-                        phrase, True, self.layout.get_text_color(TextColor.BRIGHT))
-                    x = (self.screen.get_width() - message.get_width()) // 2
-                    self.screen.blit(message, (x, y))
-                    y += self.myfont.get_linesize()
+        if room:
+            if dump:
+                room.draw(self.screen, [], [], True)
+            else:
+                objects = self.objects_in_room(room)
+                room.draw(self.screen, objects, self.get_floors()[0].exits)
+
+                if room.phrases:
+                    y = 5
+                    for phrase in room.phrases:
+                        message = self.myfont.render(
+                            phrase, True, self.layout.get_text_color(TextColor.BRIGHT))
+                        x = (self.screen.get_width() - message.get_width()) // 2
+                        self.screen.blit(message, (x, y))
+                        y += self.myfont.get_linesize()

@@ -1,7 +1,6 @@
 import pygame
 from enum import Enum
 import json
-import os
 from finder import helper
 
 json_fn = 'amulet.dat'

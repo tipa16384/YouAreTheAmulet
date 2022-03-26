@@ -27,11 +27,24 @@ if __name__ == '__main__':
     layout = Layout()
     init_screen()
 
+    # get the value of the "-dump" parameter.
+    dump = False
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "-dump":
+            dump = True
+
     intro = Intro(layout, layout.screen, layout.font)
     intro.game_loop()
 
     amulet = Amulet(layout)
     create_map(amulet)
+
+    if dump:
+        print (f"Dumping the rendered rooms")
+        amulet.dump_map()
+        print ("So long!")
+        exit()
+
     state = amulet.game_loop()
 
     if state == ExitState.QUIT:

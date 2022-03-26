@@ -37,7 +37,7 @@ class Room:
         elif rotation == 3:
             return y, self.width - x - 1
 
-    def draw_tiled(self, surface, actors, exits):
+    def draw_tiled(self, surface, actors, exits, dump=False):
         self.floor_tile = TileObject()
         self.floor_tile.width = self.tiled['tilewidth']
         self.floor_tile.height = self.tiled['tileheight']
@@ -109,6 +109,8 @@ class Room:
                     surface.blit(tile_copy, (bx+dx, by+dy-self.floor_lift))
                 else:
                     surface.blit(self.floor_tile_cache[sprite_num], (bx+dx, by+dy-self.floor_lift))
+        
+        if dump: return
 
         ssize = 64
 
@@ -154,9 +156,9 @@ class Room:
                 bx, by = self.screen_coords(0.4, ey-0.5)
                 surface.blit(self.exit_ew, (bx+dx, by+dy))
 
-    def draw(self, surface, actors, exits):
+    def draw(self, surface, actors, exits, dump=False):
         if self.tiled:
-            self.draw_tiled(surface, actors, exits)
+            self.draw_tiled(surface, actors, exits, dump)
             return
 
         screen_width, screen_height = surface.get_size()
