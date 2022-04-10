@@ -11,12 +11,12 @@ class TextColor(Enum):
     COOL = 2
 
 class Layout:
-    def __init__(self):
+    def __init__(self, o_width=None, o_height=None):
         layout = json.load(open(json_fn))['layout']
         pygame.init()
         pygame.font.init()
-        self.screen_width = layout['screen_width']
-        self.screen_height = layout['screen_height']
+        self.screen_width = o_width if o_width else layout['screen_width']
+        self.screen_height = o_height if o_height else layout['screen_height']
 
         if 'gameport' in layout:
             self.gameport_rect = layout['gameport']
